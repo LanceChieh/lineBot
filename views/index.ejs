@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8">
+      <title><%= title %></title>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
+      <link rel="stylesheet" href="stylesheets/sb-admin-2.css">
+      <%# 自己的code%>
+      <link rel="stylesheet" href="stylesheets/main.css" />
+   </head>
+   <body>
+      <div id="wrapper">
+         <!-- Navigation -->
+         <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+               <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+               <span class="sr-only">Toggle navigation</span>
+               <span class="icon-bar"></span>
+               <span class="icon-bar"></span>
+               <span class="icon-bar"></span>
+               </button>
+               <a class="navbar-brand" href="/">PS Admin</a>
+            </div>
+            <!-- /.navbar-header -->
+            <ul class="nav navbar-top-links navbar-right">
+               <li class="dropdown">
+                  <form class="search" >
+                     <input type="text" id="search-input" placeholder="搜尋圖表"/>
+                     <ul class="results" id="a" >
+                        <li id="get_h"><a href="#">總覽</a></li>
+                        <li id="get_a"><a href="#">瀏覽人數</a></li>
+                        <li id="get_b"><a href="#">國家來源</a></li>
+                        <li id="get_c"><a href="#">瀏覽器</a></li>
+                        <li id="get_d"><a href="#">通知</a></li>
+                        <li id="get_e"><a href="#">收入比例</a></li>
+                        <li id="get_g"><a href="#">聊天室</a></li>
+                     </ul>
+                  </form>
+               </li>
+               <!-- /.dropdown -->
+               <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                  <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-user">
+                     <li><a href="/profile"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                     </li>
+                     <!-- <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                     </li> -->
+                     <li class="divider"></li>
+                     <li><a href="/login" id="signout-btn"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                     </li>
+                  </ul>
+                  <!-- /.dropdown-user -->
+               </li>
+               <!-- /.dropdown -->
+            </ul>
+            <!-- /.navbar-top-links -->
+            <div class="navbar-default sidebar" role="navigation">
+               <div class="sidebar-nav navbar-collapse">
+                  <ul class="nav" id="side-menu">
+                     <li>
+                        <a href="/" class="active"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                     </li>
+                     <li>
+                        <a href="/chat"><i class="fa fa-commenting fa-fw"></i> Chat</a>
+                     </li>
+                     <li>
+                        <a href="/calendar"><i class="fa fa-table fa-fw"></i> Calendar</a>
+                     </li>
+                     <li>
+                        <a href="/ticket"><i class="fa fa-ticket fa-fw"></i> Support</a>
+                     </li>
+                     <li>
+                        <a href="https://admin-e610d.firebaseapp.com"><i class="fa fa-cogs fa-fw"></i> Admin</a>
+                     </li>
+                  </ul>
+               </div>
+               <!-- /.sidebar-collapse -->
+            </div>
+            <!-- /.navbar-static-side -->
+         </nav>
+      </div>
+
+      <div id="home">
+      <!-- ===========GOOGLE ANALYTICS API ============== --->
+      <div class="row">
+         <!--    <div class="col-lg-8"> -->
+         <!-- DASHBOARD -->
+         <div class="panel panel-default">
+            <div class="panel-heading">
+               <i class="fa fa-bar-chart-o fa-fw"></i> <span class="name" id="瀏覽人數">瀏覽人數</span>
+            </div>
+            <div class="panel-body">
+               <div id="embed-api-auth-container"></div>
+               <div id="chart-container"></div>
+               <div id="view-selector-container"></div>
+            </div>
+         </div>
+         <!-- MULTIPLE VIEWS -->
+         <div class="panel panel-default">
+            <div class="panel-heading">
+               <i class="fa fa-bar-chart-o fa-fw"></i> <span class="name" id="收入分析">國家來源</span>
+            </div>
+            <div class="panel-body">
+               <div id="embed-api-auth-container"></div>
+               <div id="chart-1-container"></div>
+               <div id="chart-2-container"></div>
+               <div style="display:block" id="view-selector-1-container"></div>
+               <div style="display:block" id="view-selector-2-container"></div>
+            </div>
+         </div>
+         <!-- INTERACTIVE CHARTS-->
+         <div class="panel panel-default">
+            <div class="panel-heading">
+               <i class="fa fa-clock-o fa-fw"></i> <span class="name" id="回饋">瀏覽器</span>
+            </div>
+            <div class="panel-body">
+               <div id="embed-api-auth-container"></div>
+               <div style="display:block" id="view-selector-container"></div>
+               <div id="main-chart-container"></div>
+               <div id="breakdown-chart-container"></div>
+            </div>
+         </div>
+      </div>
+      <!--============================================ -->
+      <!-- =========================================== -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+      <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+      <script src="javascripts/firebaseConfig.js"></script>
+      <script src="javascripts/index.js"></script>
+      <!-- Morris Charts JavaScript -->
+      <!---    <script src="vendor/raphael/raphael.min.js"></script>
+         <script src="vendor/morrisjs/morris.min.js"></script>
+         <script src="data/morris-data.js"></script>
+         <script src="javascripts/sb-admin-2.js"></script>  --->
+      <!--- =========FOR GOOGLE ANALYTICS========= -->
+      <script>
+         (function(w,d,s,g,js,fs){
+           g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(f){this.q.push(f);}};
+           js=d.createElement(s);fs=d.getElementsByTagName(s)[0];
+           js.src='https://apis.google.com/js/platform.js';
+           fs.parentNode.insertBefore(js,fs);js.onload=function(){g.load('analytics');};
+         }(window,document,'script'));
+      </script>
+      <script>
+         gapi.analytics.ready(function() {
+           /**
+            * Authorize the user immediately if the user has already granted access.
+            * If no access has been created, render an authorize button inside the
+            * element with the ID "embed-api-auth-container".
+            */
+           gapi.analytics.auth.authorize({
+             container: 'embed-api-auth-container',
+             clientid: '893891576690-e7sjrhcipgj0ekpulers7l2itsagdcrl.apps.googleusercontent.com'
+           });
+         /*=====================DASHBOARD======================*/
+           /**
+            * Create a new ViewSelector instance to be rendered inside of an
+            * element with the id "view-selector-container".
+            */
+           var viewSelector = new gapi.analytics.ViewSelector({
+             container: 'view-selector-container'
+           });
+           // Render the view selector to the page.
+           viewSelector.execute();
+           /**
+            * Create a new DataChart instance with the given query parameters
+            * and Google chart options. It will be rendered inside an element
+            * with the id "chart-container".
+            */
+           var dataChart = new gapi.analytics.googleCharts.DataChart({
+             query: {
+               metrics: 'ga:sessions',
+               dimensions: 'ga:date',
+               'start-date': '30daysAgo',
+               'end-date': 'yesterday'
+             },
+             chart: {
+               container: 'chart-container',
+               type: 'LINE',
+               options: {
+                 width: '100%'
+               }
+             }
+
+
+           });
+           /**
+            * Render the dataChart on the page whenever a new view is selected.
+            */
+           viewSelector.on('change', function(ids) {
+             dataChart.set({query: {ids: ids}}).execute();
+           });
+         });
+
+      </script>
+      <script>
+         /*====================MULTIPLE VIEWS=========================*/
+         gapi.analytics.ready(function() {
+           /**
+            * Authorize the user immediately if the user has already granted access.
+            * If no access has been created, render an authorize button inside the
+            * element with the ID "embed-api-auth-container".
+            */
+           gapi.analytics.auth.authorize({
+             container: 'embed-api-auth-container',
+             clientid: '893891576690-e7sjrhcipgj0ekpulers7l2itsagdcrl.apps.googleusercontent.com'
+           });
+           /**
+            * Create a ViewSelector for the first view to be rendered inside of an
+            * element with the id "view-selector-1-container".
+            */
+           var viewSelector1 = new gapi.analytics.ViewSelector({
+             container: 'view-selector-1-container'
+           });
+           /**
+            * Create a ViewSelector for the second view to be rendered inside of an
+            * element with the id "view-selector-2-container".
+            */
+           var viewSelector2 = new gapi.analytics.ViewSelector({
+             container: 'view-selector-2-container'
+           });
+           // Render both view selectors to the page.
+           viewSelector1.execute();
+           viewSelector2.execute();
+           /**
+            * Create the first DataChart for top countries over the past 30 days.
+            * It will be rendered inside an element with the id "chart-1-container".
+            */
+           var dataChart1 = new gapi.analytics.googleCharts.DataChart({
+             query: {
+               metrics: 'ga:sessions',
+               dimensions: 'ga:country',
+               'start-date': '30daysAgo',
+               'end-date': 'yesterday',
+               'max-results': 6,
+               sort: '-ga:sessions'
+             },
+             chart: {
+               container: 'chart-1-container',
+               type: 'PIE',
+               options: {
+                 width: '100%',
+                 pieHole: 4/9
+               }
+             }
+           });
+           /**
+            * Create the second DataChart for top countries over the past 30 days.
+            * It will be rendered inside an element with the id "chart-2-container".
+            */
+           var dataChart2 = new gapi.analytics.googleCharts.DataChart({
+             query: {
+               metrics: 'ga:sessions',
+               dimensions: 'ga:country',
+               'start-date': '30daysAgo',
+               'end-date': 'yesterday',
+               'max-results': 6,
+               sort: '-ga:sessions'
+             },
+             chart: {
+               container: 'chart-2-container',
+               type: 'PIE',
+               options: {
+                 width: '100%',
+                 pieHole: 4/9
+               }
+             }
+           });
+           /**
+            * Update the first dataChart when the first view selecter is changed.
+            */
+           viewSelector1.on('change', function(ids) {
+             dataChart1.set({query: {ids: ids}}).execute();
+           });
+           /**
+            * Update the second dataChart when the second view selecter is changed.
+            */
+           viewSelector2.on('change', function(ids) {
+             dataChart2.set({query: {ids: ids}}).execute();
+           });
+         });
+      </script>
+      <script>
+         /*================INTERACTIVE CHARTS=====================*/
+         gapi.analytics.ready(function() {
+           /**
+            * Authorize the user immediately if the user has already granted access.
+            * If no access has been created, render an authorize button inside the
+            * element with the ID "embed-api-auth-container".
+            */
+           gapi.analytics.auth.authorize({
+             container: 'embed-api-auth-container',
+             clientid: '893891576690-e7sjrhcipgj0ekpulers7l2itsagdcrl.apps.googleusercontent.com'
+           });
+           /**
+            * Create a new ViewSelector instance to be rendered inside of an
+            * element with the id "view-selector-container".
+            */
+           var viewSelector = new gapi.analytics.ViewSelector({
+             container: 'view-selector-container'
+           });
+           // Render the view selector to the page.
+           viewSelector.execute();
+           /**
+            * Create a table chart showing top browsers for users to interact with.
+            * Clicking on a row in the table will update a second timeline chart with
+            * data from the selected browser.
+            */
+           var mainChart = new gapi.analytics.googleCharts.DataChart({
+             query: {
+               'dimensions': 'ga:browser',
+               'metrics': 'ga:sessions',
+               'sort': '-ga:sessions',
+               'max-results': '6'
+             },
+             chart: {
+               type: 'TABLE',
+               container: 'main-chart-container',
+               options: {
+                 width: '100%'
+               }
+             }
+           });
+           /**
+            * Create a timeline chart showing sessions over time for the browser the
+            * user selected in the main chart.
+            */
+           var breakdownChart = new gapi.analytics.googleCharts.DataChart({
+             query: {
+               'dimensions': 'ga:date',
+               'metrics': 'ga:sessions',
+               'start-date': '7daysAgo',
+               'end-date': 'yesterday'
+             },
+             chart: {
+               type: 'LINE',
+               container: 'breakdown-chart-container',
+               options: {
+                 width: '100%'
+               }
+             }
+           });
+           /**
+            * Store a refernce to the row click listener variable so it can be
+            * removed later to prevent leaking memory when the chart instance is
+            * replaced.
+            */
+           var mainChartRowClickListener;
+           /**
+            * Update both charts whenever the selected view changes.
+            */
+           viewSelector.on('change', function(ids) {
+             var options = {query: {ids: ids}};
+             // Clean up any event listeners registered on the main chart before
+             // rendering a new one.
+             if (mainChartRowClickListener) {
+               google.visualization.events.removeListener(mainChartRowClickListener);
+             }
+             mainChart.set(options).execute();
+             breakdownChart.set(options);
+             // Only render the breakdown chart if a browser filter has been set.
+             if (breakdownChart.get().query.filters) breakdownChart.execute();
+           });
+           /**
+            * Each time the main chart is rendered, add an event listener to it so
+            * that when the user clicks on a row, the line chart is updated with
+            * the data from the browser in the clicked row.
+            */
+           mainChart.on('success', function(response) {
+             var chart = response.chart;
+             var dataTable = response.dataTable;
+             // Store a reference to this listener so it can be cleaned up later.
+             mainChartRowClickListener = google.visualization.events
+                 .addListener(chart, 'select', function(event) {
+               // When you unselect a row, the "select" event still fires
+               // but the selection is empty. Ignore that case.
+               if (!chart.getSelection().length) return;
+               var row =  chart.getSelection()[0].row;
+               var browser =  dataTable.getValue(row, 0);
+               var options = {
+                 query: {
+                   filters: 'ga:browser==' + browser
+                 },
+                 chart: {
+                   options: {
+                     title: browser
+                   }
+                 }
+               };
+               breakdownChart.set(options).execute();
+             });
+           });
+         });
+      </script>
+   </body>
+</html>

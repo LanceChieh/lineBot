@@ -1,0 +1,1945 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+var app = require('../app');
+var debug = require('debug')('project-shield:server');
+var http = require('http');
+var firebase = require('firebase');
+var linebot = require('linebot');
+const line = require('@line/bot-sdk');
+var apiai = require('apiai');
+
+var config = {
+    apiKey: "AIzaSyAqzIra9YkeE0HZZBSwXrjh4GemO7yVdmI",
+    authDomain: "shield-88fd0.firebaseapp.com",
+    databaseURL: "https://shield-88fd0.firebaseio.com",
+    projectId: "shield-88fd0",
+    storageBucket: "shield-88fd0.appspot.com",
+    messagingSenderId: "376341346069"
+};
+firebase.initializeApp(config);
+
+const usersRef = firebase.database().ref().child('chats/users');
+const agentsRef = firebase.database().ref().child('chats/agents');
+
+const auth = firebase.auth();
+// console.log(auth.app);
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+const io = require('socket.io').listen(server);
+
+/**
+ * Variables
+ */
+var users = {};
+var type_sticker = 0;
+//webhook event
+var message_lineTochat;
+var receiverId = 'Ue369116591fbd2d13a7eb5f0ff12547b';
+// LINE bot設定
+var bot = linebot({
+    channelId: '1523017277',
+    channelSecret: '5854da3399a398f8de11e0fc70b33003',
+    channelAccessToken: 'oVUH5psRgTttxDOO67E7J8Vaz7uSEr8879zjEPVNcaqgjrSTxRebL/q3aHezOFlxVgiVWEYf5v+zWT4GsupUldKgQlsTEcQknwSi71oElB5sz+t31Zn6AUlMC6W+foIA7/qkDAz5q14xB1I5Q9ImxAdB04t89/1O/w1cDnyilFU='
+});
+const linebotParser = bot.parser();
+const client = new line.Client({
+    channelAccessToken: 'oVUH5psRgTttxDOO67E7J8Vaz7uSEr8879zjEPVNcaqgjrSTxRebL/q3aHezOFlxVgiVWEYf5v+zWT4GsupUldKgQlsTEcQknwSi71oElB5sz+t31Zn6AUlMC6W+foIA7/qkDAz5q14xB1I5Q9ImxAdB04t89/1O/w1cDnyilFU='
+});
+
+// api ai setting
+var appApiai = apiai("6fd13e1dd00b4d93881e1e75cdf02bd4");
+//
+//yelp-search
+const yelp = require('yelp-fusion');
+const yelp_id = 'myyIL1Ms5JszMcXodC-o_w';
+const yelp_secret = 'Zw94mu0DGLFSmjG2at4wqSpdxtUC9TrWn6yVYUNhpLEpj4C11tzAPblLXRhpsRLh';
+var yelp_token;
+const token = yelp.accessToken(yelp_id, yelp_secret).then(response => {
+  console.log(response.jsonBody.access_token);
+  yelp_token = response.jsonBody.access_token;
+}).catch(e => {
+  console.log(e);
+});
+var z;
+var z2;
+var z3;
+var x;
+var x2;
+var x3;
+var y;
+var w;
+var w1;
+var w2;
+var n;
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+// 接收訊息
+// LINE bot implement
+bot.on('message', event => {
+    // console.log(event);
+    let d = Date.now();
+    let date = new Date(d);
+    let message_type = event.message.type;
+    let address = event.message.address;
+    let latitude = event.message.latitude;
+    let longitude = event.message.longitude;
+    message_lineTochat = event.message.text;
+    receiverId = event.source.userId;
+    // console.log(receiverId);
+    // from wenyen
+    //  ===================  KINDS ====================
+    if (message_type === 'sticker') {
+
+        io.sockets.emit('new message', {
+            msg: 'Sticker received. Please check your phone.',
+            name: receiverId
+        });
+
+        type_sticker += 1;
+
+
+    } else if (message_type === 'location') {
+        io.sockets.emit('new message', {
+            msg: 'Location received: ',
+            name: receiverId
+        });
+        io.sockets.emit('new message', {
+            msg: address,
+            name: receiverId
+        });
+        // 定位系統(餐廳搜尋)
+        setTimeout(() => {
+          const yelp_client = yelp.client(yelp_token);
+          yelp_client.search({
+            term:'restaurants',//餐廳種類
+            locale:'zh_TW', //語系
+            location: address,
+          }).then(response => {
+            z = response.jsonBody.businesses[1].name;
+            z2 = response.jsonBody.businesses[2].name;
+            z3 = response.jsonBody.businesses[3].name;
+
+            x = response.jsonBody.businesses[1].image_url;
+            x2 = response.jsonBody.businesses[2].image_url;
+            x3 = response.jsonBody.businesses[3].image_url;
+
+            y = response.jsonBody.businesses[1].location.display_address;
+            y2 = response.jsonBody.businesses[2].location.display_address;
+            y3 = response.jsonBody.businesses[3].location.display_address;
+
+            w = response.jsonBody.businesses[1].url;
+            w2 = response.jsonBody.businesses[2].url;
+            w3 = response.jsonBody.businesses[3].url;
+
+            n = response.jsonBody.businesses[1].location;
+          event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+              "thumbnailImageUrl": x,
+                "title": z,
+                "text": y[0]+y[1],
+                "actions": [{
+                  "type": 'uri',
+                  "label": '觀看餐廳資訊',
+                  "uri": w
+                }]
+            },{
+              "thumbnailImageUrl": x2,
+                "title": z2,
+                "text": y2[0]+y2[1],
+                "actions": [{
+                  "type": 'uri',
+                  "label": '觀看餐廳資訊',
+                  "uri": w2
+                }]
+            },{
+              "thumbnailImageUrl": x3,
+                "title": z3,
+                "text": y3[0]+y3[1],
+                "actions": [{
+                  "type": 'uri',
+                  "label": '觀看餐廳資訊',
+                  "uri": w3
+                }]
+            }
+          ]
+            }
+          })
+            console.log('z:'+z);
+            console.log('x:'+x);
+            console.log(n);
+            console.log(address);
+
+          }).catch(e => {
+            console.log(e);
+          });
+      }, 2000);
+
+        event.message.content().then(function(content) {
+            /*'base64'是圖片的編碼*/
+            console.log(content);
+            // console.log(content.toString('base64'));
+            /*把編碼轉換成圖片(image/png)做成連結的方式*/
+            io.sockets.emit('new message', {
+                msg: '<a target="_blank" href=" https://www.google.com.tw/maps/place/' + content.toString('base64') + '/@' + latitude + ',' + longitude + ',15z/data=!4m5!3m4!1s0x0:0x496596e7748a5757!8m2!3d' + latitude + '!4d' + longitude + '">LOCATION LINK</a>',
+                name: receiverId
+            });
+        }).catch(function(error) {
+            // error
+        });
+
+    } else if (message_type === 'image') {
+        io.sockets.emit('new message', {
+            msg: 'Image received. Please wait for the link below',
+            name: receiverId
+        });
+
+        event.message.content().then(function(content) {
+            /*'base64'是圖片的編碼*/
+            console.log(content.toString('base64'));
+            /*把編碼轉換成圖片(image/png)做成連結的方式*/
+            io.sockets.emit('new message', {
+                msg: '<a target="_blank" href="data:image/png;base64,' + content.toString('base64') + '" ' +
+                    'width="70" height="38" alt="image embedded using base64 encoding!">IMAGE LINK</a>',
+                name: receiverId
+            });
+
+        }).catch(function(error) {
+            // error
+            console.log(error);
+        });
+
+    } else if (message_type === 'audio') {
+        io.sockets.emit('new message', {
+            msg: 'Audio received. Please wait for the link below.',
+            name: receiverId
+        });
+        event.message.content().then(function(content) {
+            console.log(content.toString('base64'));
+            io.sockets.emit('new message', {
+                msg: '<a target="_blank" href="data:audio/mp4;base64,' + content.toString('base64') + '" ' +
+                    '">AUDIO LINK</a>',
+                name: receiverId
+            });
+
+        }).catch(function(error) {
+            // error
+            console.log(error);
+        });
+    } else if (message_type === 'video') {
+        io.sockets.emit('new message', {
+            msg: 'Video received. Please wait for the link below.',
+            name: receiverId
+        });
+        event.message.content().then(function(content) {
+            console.log(content.toString('base64'));
+            io.sockets.emit('new message', {
+                msg: '<a target="_blank" href="data:video/mp4;base64,' + content.toString('base64') + '" ' +
+                    '">VIDEO LINK</a>',
+                name: receiverId
+            });
+
+        }).catch(function(error) {
+            // error
+            console.log(error);
+        });
+    } else if (message_type === 'text' && (message_lineTochat.indexOf('.com') !== -1 || message_lineTochat.indexOf('.edu') !== -1 || message_lineTochat.indexOf('.net') !== -1 || message_lineTochat.indexOf('.io') !== -1 || message_lineTochat.indexOf('.org') !== -1)) {
+        if (message_lineTochat.indexOf('https') !== -1 || message_lineTochat.indexOf('http') !== -1) {
+            io.sockets.emit('new message', {
+                msg: '<a href=' + message_lineTochat + '>' + message_lineTochat + '</a>',
+                name: receiverId
+            });
+        } else {
+            io.sockets.emit('new message', {
+                msg: '<a href="https://' + message_lineTochat + '/" target="_blank">' + message_lineTochat + '</a>',
+                name: receiverId
+            });
+        }
+
+        usersRef.push({
+            message: message_lineTochat,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+    }
+    else if (event.message.type === 'text' && message_lineTochat.trim() === '餐廳DEMO') {
+      let yelp = ('感謝您使用挑餐廳的功能!\n傳送你的位置給我，便會告訴你最近的三家餐廳。');
+      io.sockets.emit('new message', {
+          msg: yelp,
+          name: receiverId
+      });
+      event.reply({
+          type: 'text',
+          text: yelp
+      });
+  }
+
+/*----------------------------------------------------購買方案------------------------------------------------------------*/
+    else if (event.message.type === 'text' && message_lineTochat.trim() === '購買方案') {
+        io.sockets.emit('new message', {
+            msg: '已接收購買方案' + "Free方案" + "Night方案" + "Morning方案"+ "Business方案" + "All day方案" + "VIP方案",
+            name: receiverId,
+        });
+        event.reply({
+            "type": "template",
+            "altText": "Welcome Template",
+            "template": {
+              type: 'carousel',
+        "columns": [{
+            "title": '購買方案。',
+            "text": '請選擇以下方案。',
+            "actions": [{
+              "type": "message",
+                "label": 'Free方案',
+                "text": "Free方案"
+            },{
+              "type": "message",
+                "label": 'Night方案',
+                "text": "Night方案"
+            },{
+              "type": "message",
+                "label": 'Morning方案',
+                "text": "Morning方案"
+            }]
+        },{
+            "title": '購買方案。',
+            "text": '請選擇以下方案。',
+            "actions": [{
+              "type": "message",
+                "label": 'Business方案',
+                "text": "Business方案"
+            },{
+              "type": "message",
+                "label": 'All day方案',
+                "text": "All day方案"
+            },{
+              "type": "message",
+                "label": 'VIP方案',
+                "text": "VIP方案"
+            }]
+        }]
+        }
+      })
+        usersRef.push({
+            message: message_lineTochat,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+
+    } /*else if (event.message.type === 'text' && message_lineTochat.trim() === '服務時段') {
+        let service_time = '「0700~1100」 \n 「1100~1500」 \n 「1500~1900」 \n 「1900~2300」';
+        io.sockets.emit('new message', {
+            msg: '已發送服務時段' + "0700~1100」" + "「1100~1500」" + "「1500~1900」" + "「1900~2300」",
+            name: receiverId
+        });
+        event.reply({
+            type: 'text',
+            text: service_time
+        });
+        usersRef.push({
+            message: '已發送服務時段' + "0700~1100」" + "「1100~1500」" + "「1500~1900」" + "「1900~2300」",
+            user: receiverId,
+            messageTime: date.toString()
+        });
+      }*/
+      else if (event.message.type === 'text' && message_lineTochat.trim() === 'Free方案') {
+        let free = 'Free方案 \n$0.00每月';
+        io.sockets.emit('new message', {
+            msg: free,
+            name: receiverId
+        });
+        event.reply({
+            type: 'text',
+            text: free
+        });
+    } else if (event.message.type === 'text' && message_lineTochat.trim() === 'Night方案') {
+        let six = 'Night方案 6hr/day \n$18,888每月';
+        io.sockets.emit('new message', {
+            msg: six,
+            name: receiverId
+        });
+        event.reply({
+            type: 'text',
+            text: six
+        });
+    } else if (event.message.type === 'text' && message_lineTochat.trim() === 'Morning方案') {
+        let night = 'Morning方案 9hr/day \n$21,008每月';
+        io.sockets.emit('new message', {
+            msg: night,
+            name: receiverId
+        });
+        event.reply({
+            type: 'text',
+            text: night
+        });
+    } else if (event.message.type === 'text' && message_lineTochat.trim() === 'Business方案') {
+        let fifteen = 'Business方案 15hr/day \n$45,888每月';
+        io.sockets.emit('new message', {
+            msg: fifteen,
+            name: receiverId
+        });
+        event.reply({
+            type: 'text',
+            text: fifteen
+        });
+    } else if (event.message.type === 'text' && message_lineTochat.trim() === 'All day方案') {
+        let twenty = 'All day方案 24hr/day \n$65,888每月';
+        io.sockets.emit('new message', {
+            msg: twenty,
+            name: receiverId
+        });
+        event.reply({
+            type: 'text',
+            text: twenty
+        });
+    } else if (event.message.type === 'text' && message_lineTochat.trim() === 'VIP方案') {
+        let vip = '請與我們做聯絡\n電話:02-27583626\n電子信箱:hello@tiniline.com';
+        io.sockets.emit('new message', {
+            msg: vip,
+            name: receiverId
+        });
+        event.reply({
+            type: 'text',
+            text: vip
+        });
+    }
+    /*----------------------------------------------------公司資訊------------------------------------------------------------*/
+    else if (event.message.type === 'text' && message_lineTochat.trim() === '公司資訊') {
+        let company = '地址:台北市\n信義區信義路四段415號9樓\n服務時間:\n週一至週五09:00~18:00\n電話:02-2758-3626\n電子信箱:hello@tiniline.com';
+        io.sockets.emit('new message', {
+            msg: company,
+            name: receiverId
+        });
+        event.reply({
+            type: 'text',
+            text: company
+        });
+    }
+
+    /*----------------------------------------------------主選單------------------------------------------------------------*/
+    else if(event.message.type === 'text' && message_lineTochat.trim() === 'Tini小精靈') {
+                 io.sockets.emit('new message', {
+                     msg: '已接收顯示Tini'+ "問題分類"+ "購買方案"+ "公司資訊" + "菜單功能"+ "購物車功能"+ "問卷功能",
+                     name: receiverId,
+                 });
+                 event.reply({
+                     "type": "template",
+                     "altText": "Welcome Template",
+                     "template": {
+                       type: 'carousel',
+                 "columns": [{
+                     "thumbnailImageUrl": 'https://7-t.imgbox.com/GEduM2tI.jpg',
+                     "title": '請選擇以下服務。',
+                     "text": '由Tini小精靈幫您快速排解問題!',
+                     "actions": [{
+                       "type": "message",
+                         "label": '問題分類',
+                         "text": "問題分類"
+                     },{
+                       "type": "message",
+                         "label": '購買方案',
+                         "text": "購買方案"
+                     },{
+                       "type": "message",
+                         "label": '公司資訊',
+                         "text": "公司資訊"
+                     }]
+                 },{
+                     "thumbnailImageUrl": 'https://6-t.imgbox.com/4gj9qJm7.jpg',
+                     "title": '功能示範DEMO系列',
+                     "text": '菜單/購物車/問卷 功能',
+                     "actions": [{
+                       "type": "message",
+                         "label": '菜單功能',
+                         "text": "菜單功能"
+                     },{
+                       "type": "message",
+                         "label": '購物車功能',
+                         "text": "購物車功能"
+                     },{
+                       "type": "message",
+                         "label": '問卷功能',
+                         "text": "問卷功能"
+                     }]
+                 },{
+                     "thumbnailImageUrl": 'https://s3-media4.fl.yelpcdn.com/bphoto/k4lpLYvXyUrscEowoiO9hg/o.jpg',
+                     "title": '功能示範DEMO系列',
+                     "text": '餐廳搜尋 功能',
+                     "actions": [{
+                       "type": "message",
+                         "label": '餐廳DEMO',
+                         "text": "餐廳DEMO"
+                     },{
+                       "type": "message",
+                         "label": ' ',
+                         "text": " "
+                     },{
+                       "type": "message",
+                         "label": ' ',
+                         "text": " "
+                     }]
+                 }]
+                 }
+               })
+             }
+/*----------------------------------------------------問題分類------------------------------------------------------------*/
+             else if(event.message.type === 'text' && message_lineTochat.trim() === '問題分類') {
+                          io.sockets.emit('new message', {
+                              msg: '已接收顯示問題分類'+"帳戶建立與設定"+"帳戶安全性"+"呼叫Tini小精靈"+"產品/服務"+"價格方案"+"服務時段"+"付款相關"+"退款相關"+"售後諮詢",
+                              name: receiverId,
+                          });
+                          event.reply({
+                              "type": "template",
+                              "altText": "Welcome Template",
+                              "template": {
+                                type: 'carousel',
+                          "columns": [{
+                              "title": '使用者帳戶相關問題',
+                              "text": "帳戶建立與設定、安全性",
+                              "actions": [{
+                                "type": "message",
+                                  "label": '帳戶建立與設定',
+                                  "text": "帳戶建立與設定"
+                              },{
+                                "type": "message",
+                                  "label": '帳戶安全性',
+                                  "text": "帳戶安全性"
+                              },{
+                                "type": "message",
+                                  "label": '呼叫Tini小精靈',
+                                  "text": "Tini小精靈"
+                              }]
+                          },{
+                              "title": '服務產品相關問題',
+                              "text": "產品/服務、價格方案、服務時段",
+                              "actions": [{
+                                "type": "message",
+                                  "label": '我們的產品/服務',
+                                  "text": "我們的產品/服務"
+                              },{
+                                "type": "message",
+                                  "label": '價格方案',
+                                  "text": "價格方案"
+                              },{
+                                "type": "message",
+                                  "label": '服務時段',
+                                  "text": "服務時段"
+                              }]
+                          },{
+                              "title": '付/退款及售後相關問題',
+                              "text": "付款相關、退款相關、售後諮詢",
+                              "actions": [{
+                                "type": "message",
+                                  "label": '付款相關',
+                                  "text": "付款相關"
+                              },{
+                                "type": "message",
+                                  "label": '退款相關',
+                                  "text": "退款相關"
+                              },{
+                                "type": "message",
+                                  "label": '售後諮詢',
+                                  "text": "售後諮詢"
+                              }]
+                          }]
+                          }
+                        })
+                      }
+/*----------------------------------------------------問題分類(A)------------------------------------------------------------*/
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === '帳戶建立與設定') {
+                        let A = '帳戶建立與設定問題(共10題)\n輸入代號，例如：『A1』，讓我回答你想知道的問題答案\n\nA1:為什麼需要註冊一個帳戶?\nA2:如何創建一個新的帳戶?\nA3:我忘記了我的帳戶密碼該怎麼辦?\nA4:如果我使用Facebook 登錄，但忘記密碼該怎麼做？\nA5:如何確認已設定的電子郵件帳號(email)呢？\nA6:設定完成的電子郵件帳號已無法使用，且忘記密碼。\nA7:我要如何變更密碼？\nA8:無法收到重設密碼的說明郵件。\nA9:希望復原已刪除的帳號。\nA10:開始與客服人員交談後，就已經是註冊帳號了嗎?\n\n想回到問題總覽?輸入\n『問題分類』';
+                        io.sockets.emit('new message', {
+                            msg: A,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'A1') {
+                        let A1 = 'A1:\n若您要開始購買及使用我們的服務，您就需要註冊一個帳戶，登入後可管理您所訂閱的服務方案。';
+                        io.sockets.emit('new message', {
+                            msg: A1,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A1
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'A2') {
+                        let A2 = 'A2:\n請點選右上角「註冊帳號」或是您在進行購買方案的流程時，就會協助您註冊帳號。';
+                        io.sockets.emit('new message', {
+                            msg: A2,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A2
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'A3') {
+                        let A3 = 'A3:\n1.到登錄頁面，選擇忘了我的密碼，或直接轉到密碼重設頁面。\n2.我們將指導您完成重置您的密碼和安全資訊的過程';
+                        io.sockets.emit('new message', {
+                            msg: A3,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A3
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'A4') {
+                        let A4 = 'A4:\n如果你登錄到Tiniline 使用您 Facebook 帳號 （電子郵件地址或電話號碼和密碼），當您忘記了您的密碼時，請到這個 Facebook 頁面重置您的密碼。Tiniline 是不負責外部網站的內容。';
+                        io.sockets.emit('new message', {
+                            msg: A4,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A4
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'A5') {
+                        let A5 = 'A5:\n若不記得已設定的密碼為何，請透過變更密碼的操作，重新設定一組第三者不易推測的新密碼。\n重新設定密碼的方法，請參閱下列常見問題的說明。';
+                        io.sockets.emit('new message', {
+                            msg: A5,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A5
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'A6') {
+                        let A6 = 'A6:\n請至Tiniline官網 右上角進行「登入」後，點選「我的帳號」，即可查看您所註冊的電子郵件。';
+                        io.sockets.emit('new message', {
+                            msg: A6,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A6
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'A7') {
+                        let A7 = 'A7:\n1.請至Tiniline官網 右上角進行「登入」後，點選「我的帳號」。\n2. 點選「變更電子郵件帳號」或「設定電子郵件帳號」後，選擇希望變更的項目。';
+                        io.sockets.emit('new message', {
+                            msg: A7,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A7
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'A8') {
+                        let A8 = 'A8:\n1.請至Tiniline官網 右上角進行「登入」後，點選「我的帳號」。\n2. 點選「變更電子郵件帳號」或「設定電子郵件帳號」後，選擇希望變更的項目。';
+                        io.sockets.emit('new message', {
+                            msg: A8,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A8
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'A9') {
+                        let A9 = 'A9:\n1.請至Tiniline官網 右上角進行「登入」後，點選「我的帳號」。\n2. 點選「設定電子郵件帳號」＞「變更密碼」。';
+                        io.sockets.emit('new message', {
+                            msg: A9,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A9
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'A10') {
+                        let A10 = 'A10:\n若無法收到重設密碼的說明郵件，請確認下列內容：\n⋅電子郵件帳號是否輸入正確\n⋅輸入的電子郵件帳號是否與帳號內設定的電子郵件帳號不同\n⋅該封郵件是否出現在垃圾信件匣或是其他收件匣內\n⋅是否設定了過濾垃圾郵件的功能\n若設定了過濾垃圾郵件的功能，請先將該功能關閉。\n※例如：設定了不接收內含某網址的信件、不接收從電腦送出的信件等\n\n⋅是否設定只接收指定網域的信件\n若設定為只接收指定網域的信件，請允許接收來自「line.me」網域的信件。\n\n⋅是否設定了不符合RFC檔案格式的電子郵件帳號\n不符合RFC檔案格式的電子郵件帳號實例如下：\n於「@」前使用點號(.)的電子郵件帳號：abcd.@xxx.com\n連續使用點號的電子郵件帳號：ab..cd@xxx.com\n開頭為「-」的電子郵件帳號：-abcd@xxx.com\n⋅是否於短時間內重複接收信件\n若在短時間內重複接收信件，有可能導致無法正常收信的情況發生，請間隔24小時後再次嘗試收信。\n\n若在使用LINE時遇到問題，請至官網「聯絡我們」或「線上客服」詢問，客服中心將會協助處理您的問題。';
+                        io.sockets.emit('new message', {
+                            msg: A10,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: A10
+                        });
+                      }
+
+
+/*----------------------------------------------------問題分類(B)------------------------------------------------------------*/
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === '帳戶安全性') {
+                        let B = '帳戶安全性問題(共2題)\n輸入代號，例如：『B1』，讓我回答你想知道的問題答案\n\nB1:帳號遭到非法登入（盜用）怎麼辦?\nB2:為什麼我的帳戶遭到封鎖？\n\n回到問題總覽?輸入\n『問題分類』';
+                        io.sockets.emit('new message', {
+                            msg: B,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: B
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'B1') {
+                        let B1 = 'B1:\n請嘗試以下動作:\n重設您的密碼\n1.請至Tiniline官網 右上角進行「登入」後，點選「我的帳號」。\n2. 點選「設定電子郵件帳號」＞「變更密碼」。\n與本公司聯絡並提出刪除帳號的要求\n若嘗試重新登入時無法順利登入，有可能是密碼已遭盜用者變更。\n於上述情況時，請透過替你聊官網聯絡客服，提供相關資料給我們。為防止盜用者繼續非法使用該筆帳號，在收到您的聯絡後我們將盡速刪除該筆遭盜用的帳號。';
+                        io.sockets.emit('new message', {
+                            msg: B1,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: B1
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'B2') {
+                        let B2 = 'B2:\n我們注意到您的帳戶有不尋常的活動，所以暫時將其封鎖。我們知道帳戶遭到封鎖是一件令人沮喪的事情，但這是幫助我們保護所有客戶 (包括您在內) 免受垃圾郵件和線上詐騙干擾的一個重要工具。';
+                        io.sockets.emit('new message', {
+                            msg: B2,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: B2
+                        });
+                      }
+
+/*----------------------------------------------------問題分類(C)------------------------------------------------------------*/
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === '我們的產品/服務') {
+                        let C = '我們產品/服務問題(共10題)\n輸入代號，例如：『C1』，讓我回答你想知道的問題答案\n\nC1:我在Tiniline可以得到哪些服務呢?\nC2:甚麼是知識庫?，而知識庫的用途是?\nC3:分析和統計包含什麼內容?\nC4:我的訪客不管是用手機跟平板都能連絡到文字客服嗎?\nC5:觸發訊息功能是甚麼?\nC6:我可以自訂觸發訊息的內容嗎?\nC7:每日統整簡報如何傳給我?有甚麼內容?\nC8:服務需要花多少時間處理問題?\nC9:啟用服務的流程是什麼?\nC10:客服人員下班後，有客人在網站上想問問題怎麼辦?\n\n想回到問題總覽?輸入\n『問題分類』';
+                        io.sockets.emit('new message', {
+                            msg: C,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'C1') {
+                        let C1 = 'C1:\nTiniline提供專業的線上文字客服，採用真人客服，並且滿足你在即時客服的需求，例如產品詢問、買賣糾紛、帳號權限、遊戲安裝等問題，依據客戶的產業客服會對訪客有不同的解答，並且聊天記錄我們會保留以供客戶查詢，更進一步還能替你分析訪客分布等等的數據統計，至於數據的分析深淺取決於你的所選擇的方案，有更多關於方案的資訊你可以點擊這裡看看Tiniline有沒有你的需求。';
+                        io.sockets.emit('new message', {
+                            msg: C1,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C1
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'C2') {
+                        let C2 = 'C2:\n我們會將您提供的公司產品/服務的相關內容，協助您建立知識庫。若您選擇15小時方案，我們更將進一步幫您彙整出訪客時常詢問但尚未在知識庫裡的問題，擴充知識庫。\n知識庫主要是用來供客服人員回答訪客的常見問題，讓客服人員能夠更迅速解決問題。';
+                        io.sockets.emit('new message', {
+                            msg: C2,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C2
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'C3') {
+                        let C3 = 'C3:\n9小時方案的分析統計主要是分析訪客的數量、來源、滿意度、使用的瀏覽器、來訪次數等基本分析報告。\n15小時方案除了包含基本的分析，會提供更多面向的分析報告包含案例分析、客群、商品詢問熱度。';
+                        io.sockets.emit('new message', {
+                            msg: C3,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C3
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'C4') {
+                        let C4 = 'C4:\n不管是電腦或是手機、平板等行動裝置等等，只要能瀏覽網頁，都能夠進行線上文字客服。';
+                        io.sockets.emit('new message', {
+                            msg: C4,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C4
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'C5') {
+                        let C5 = 'C5:\n提供多種「迎賓訊息」，系統自動招呼訪客，避免漫長等待。';
+                        io.sockets.emit('new message', {
+                            msg: C5,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C5
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'C6') {
+                        let C6 = 'C6:\n可以，但是有『15小時方案』及『24小時方案』您才能自訂觸發訊息。『9小時方案』我們有預設版本供您使用。';
+                        io.sockets.emit('new message', {
+                            msg: C6,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C6
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'C7') {
+                        let C7 = 'C7:\n每日發送email。\n我們與客戶的接洽的概況。';
+                        io.sockets.emit('new message', {
+                            msg: C7,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C7
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'C8') {
+                        let C8 = 'C8:\n我們是即時性文字客服，所以只要是在客服的服務時段內，顧客的問題我們都會盡可能的用最快的速度去處理，若顧客是在您所選定的服務時段提問以外，顧客可以留下離線訊息，您也可以登入後台即時回答問題或處理離線訊息。';
+                        io.sockets.emit('new message', {
+                            msg: C8,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C8
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'C9') {
+                        let C9 = 'C9:\n首先，請您選擇並購買合適的方案。接下來，請您將產品的相關資料及處理流程交給我們，再來則是與我們一同建立知識庫，之後若您有其他要求也可和我們進行討論，完成以上步驟即開始啟用服務。';
+                        io.sockets.emit('new message', {
+                            msg: C9,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C9
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'C10') {
+                        let C10 = 'C10:\n若您停止使用服務的話，我們會保留您的資料直到帳號的有效期限結束，而在帳號有效期限結束後我們會立即刪除您的資料。';
+                        io.sockets.emit('new message', {
+                            msg: C10,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: C10
+                        });
+                      }
+/*----------------------------------------------------問題分類(D)------------------------------------------------------------*/
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === '價格方案') {
+                        let D = '價額方案問題(共9題)\n輸入代號，例如：『D1』，讓我回答你想知道的問題答案\n\nD1:這些服務方案間什麼差別?\nD2:如果我已經選擇了「9小時方案」，但使用之後想再換成「15小時方案」或「24小時方案」，可以中途換方案嗎?\nD3:我可以加價增加我所選的方案中沒有的功能嗎?\nD4:會有幾位客服來處理我的事務?\nD5:我若長期訂購的話，會有優惠嗎?\nD6:可以依照我們公司的需求客製方案嗎?\nD7:假如我買了「9小時」(或「15小時」「24小時」)方案，我後來需要延長時段，可以加購時數嗎?\nD8:假如我買了「9小時」(或「15小時」「24小時」)方案，我臨時需要延長時段，可以嗎?要如何計費?\nD9:請問你們的方案有試用期嗎?\n\n想回到問題總覽?輸入\n『問題分類』';
+                        io.sockets.emit('new message', {
+                            msg: D,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: D
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'D1') {
+                        let D1 = 'D1:\n方案之間的差異在於知識庫的資料可建立數和聊天紀錄的可查詢範圍，若是選擇15小時的方案的話知識庫的建立和聊天紀錄則不受限制，而且還可額外新增知識庫的資料。除此之外15小時的方案還提供為您分析、統計資料等服務。至於其他的差異則是客人在選擇方案時額外做的調整。若您有問題，歡迎您與我們連絡。';
+                        io.sockets.emit('new message', {
+                            msg: D1,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: D1
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'D2') {
+                        let D2 = 'D2:\n可以，但您只能升級方案，升級方案的收費方式為補差價或提前換約，詳細資訊請聯絡我們，將由專員協助您完成轉換方案的流程。';
+                        io.sockets.emit('new message', {
+                            msg: D2,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: D2
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'D3') {
+                        let D3 = 'D3:可以，請聯絡我們，將由專員為您服務。';
+                        io.sockets.emit('new message', {
+                            msg: D3,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: D3
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'D4') {
+                        let D4 = 'D4:\n我們會視您的訪客流量調整人員配置，確保您的顧客的都能及時地獲得協助。';
+                        io.sockets.emit('new message', {
+                            msg: D4,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: D4
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'D5') {
+                        let D5 = 'D5:\n請聯絡我們，將由專員為您服務。';
+                        io.sockets.emit('new message', {
+                            msg: D5,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: D5
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'D6') {
+                        let D6 = 'D6:\n請聯絡我們，將由專員為您服務。';
+                        io.sockets.emit('new message', {
+                            msg: D6,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: D6
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'D7') {
+                        let D7 = 'D7:\n可以，加購時數的計費方式將由專人為您說明。';
+                        io.sockets.emit('new message', {
+                            msg: D7,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: D7
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'D8') {
+                        let D8 = 'D8:\n可以，但請於至少3天前告知我們須延長的時數與日期，以便我們安排客服人員為您服務。延長時段的計費方式將由專人為您說明。';
+                        io.sockets.emit('new message', {
+                            msg: D8,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: D8
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'D9') {
+                        let D9 = 'D9:\n沒有，請直接選擇適合您的方案開始啟用服務。若您希望先試用服務，我們建議您可以先選用「9小時」方案，之後可再升級成您想要的方案。';
+                        io.sockets.emit('new message', {
+                            msg: D9,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: D9
+                        });
+                      }
+
+/*----------------------------------------------------問題分類(E)------------------------------------------------------------*/
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === '服務時段') {
+                        let E = '服務時段問題(共4題)\n輸入代號，例如：『E1』，讓我回答你想知道的問題答案\n\nE1:請問你們提供「四個時段」是哪四個時段?\nE2:我選了「9小時」方案，是可以從你們所提供的四個時段裡任挑兩個嗎?\nE3:客服人員下班後，有客人在網站上想問問題怎麼辦?\nE4:請問在客服人員下班後，我們的詢問的訊息會怎樣被處理，會不會被遺漏掉?\n\n想回到問題總覽?輸入\n『問題分類』';
+                        io.sockets.emit('new message', {
+                            msg: E,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: E
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'E1') {
+                        let E1 = 'E1:\n「0700~1100」、\n「1100~1500」、\n「1500~1900」、\n「1900~2300」';
+                        io.sockets.emit('new message', {
+                            msg: E1,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: E1
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'E2') {
+                        let E2 = 'E2:\n是的。但這兩個時段必須是「連續的」，如:\n「0700~1100」及\n「1100~1500」、\n「1100~1500」及\n「1500~1900」或是\n「1500~1900」及\n「1900~2300」。';
+                        io.sockets.emit('new message', {
+                            msg: E2,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: E2
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'E3') {
+                        let E3 = 'E3:\n我們的系統有「離線留言」的功能，因此客人可以留下訊息，我們會在次日服務時段時立刻幫您處理。';
+                        io.sockets.emit('new message', {
+                            msg: E3,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: E3
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'E4') {
+                        let E4 = 'E4:\n在您選定的客服服務時段內，網站訪客的提問基本上都能馬上獲得回應，而在客服人員下班及選定服務時段以外的時間，訪客可以留下離線訊息，我們會在次日服務時段時立刻幫您處理。';
+                        io.sockets.emit('new message', {
+                            msg: E4,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: E4
+                        });
+                      }
+
+/*----------------------------------------------------問題分類(F)------------------------------------------------------------*/
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === '付款相關') {
+                        let F = '付款相關問題(共4題)\n輸入代號，例如：『F1』，讓我回答你想知道的問題答案\nF1:請問所有方案的價格都是含稅的嗎?\nF2:請問你們有優惠價格嗎?\nF3:我可以使用歐付寶以外的付款方式嗎?\nF4:請問歐付寶該如何操作付款?\n\n想回到問題總覽?輸入\n『問題分類』';
+                        io.sockets.emit('new message', {
+                            msg: F,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: F
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'F1') {
+                        let F1 = 'F1:\n都是未稅價格，稅會在您選定方案後，開始進行結帳流程時另外加上。';
+                        io.sockets.emit('new message', {
+                            msg: F1,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: F1
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'F2') {
+                        let F2 = 'F2:\n我們會不定期推出促銷活動，請持續關注我們的官網和粉絲專頁。';
+                        io.sockets.emit('new message', {
+                            msg: F2,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: F2
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'F3') {
+                        let F3 = 'F3:\n我們提供信用卡付款及銀行匯款，請留下您的聯絡方式，將由專人為您服務。';
+                        io.sockets.emit('new message', {
+                            msg: F3,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: F3
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'F4') {
+                        let F4 = 'F4:\n點擊「歐付寶付款去」後，系統將會引導您操作步驟，詳情可參考歐付寶官網的付款方式。';
+                        io.sockets.emit('new message', {
+                            msg: F4,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: F4
+                        });
+                      }
+
+/*----------------------------------------------------問題分類(G)------------------------------------------------------------*/
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === '退款相關') {
+                        let G = '退款相關問題\n輸入代號，例如：『G1』，讓我回答你想知道的問題答案\n\nG1: 若想停用服務的話，是否可以退款?\n\n想回到問題總覽?輸入\n『問題分類』';
+                        io.sockets.emit('new message', {
+                            msg: G,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: G
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'G1') {
+                        let G1 = 'G1:\n若您決定停用服務的話，請您停止使用服務，由於服務的費用已經支付，是否使用服務則是您的權利，但已經支付的費用我們概不退回。詳細規定可參考我們的服務條款。';
+                        io.sockets.emit('new message', {
+                            msg: G1,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: G1
+                        });
+                      }
+
+/*----------------------------------------------------問題分類(H)------------------------------------------------------------*/
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === '售後諮詢') {
+                        let H = '售後諮詢問題(共8題)\n輸入代號，例如：『H1』，讓我回答你想知道的問題答案\n\nH1:請問我可以自訂視窗外觀嗎?\nH2:如果我想升級方案?\nH3:我可以加價增加我所選的方案中沒有的功能嗎?\nH4:我想對我的訪客作來源分布調查，請問有提供嗎?\nH5:在我所選的客服時段以外的時間，我可以自己登入後臺回答顧客問題嗎?\nH6:我從哪裡可以看到你們幫我建立的「客戶檔案」?\nH7:請問觸發訊息能設定幾個?\nH8:我如何調閱聊天紀錄?\n\n想回到問題總覽?輸入\n『問題分類』';
+                        io.sockets.emit('new message', {
+                            msg: H,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: H
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'H1') {
+                        let H1 = 'H1:\n不可以。';
+                        io.sockets.emit('new message', {
+                            msg: H1,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: H1
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'H2') {
+                        let H2 = 'H2:\n可以，但您必須在使用8個月後才可換方案，轉換方案的收費方式採多退少補，詳細資訊請聯絡我們，將由專員協助您完成轉換方案的流程。';
+                        io.sockets.emit('new message', {
+                            msg: H2,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: H2
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'H3') {
+                        let H3 = 'H3:\n可以，請聯絡我們，將由專員為您服務。';
+                        io.sockets.emit('new message', {
+                            msg: H3,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: H3
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'H4') {
+                        let H4 = 'H4:\n請至Tiniline官網登入你的帳號，進入你的專屬的後台就能看到訪客的來源分布報告。';
+                        io.sockets.emit('new message', {
+                            msg: H4,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: H4
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'H5') {
+                        let H5 = 'H5:\n不可以。您所選定的服務時段以外的顧客留言也將會由客服人員為您處理離線留言。';
+                        io.sockets.emit('new message', {
+                            msg: H5,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: H5
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'H6') {
+                        let H6 = 'H6:\n您可至Tiniline官網登入你的帳號後，即可檢視「客戶檔案」。';
+                        io.sockets.emit('new message', {
+                            msg: H6,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: H6
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'H7') {
+                        let H7 = 'H7:\n我們提供的預設版本您皆可使用，客製觸發訊息的部分，沒有特別限制數量。';
+                        io.sockets.emit('new message', {
+                            msg: H7,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: H7
+                        });
+                      }
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === 'H8') {
+                        let H8 = 'H8:\n您可至Tiniline官網登入你的帳號後，即可查閱聊天紀錄。';
+                        io.sockets.emit('new message', {
+                            msg: H8,
+                            name: receiverId
+                        });
+                        event.reply({
+                            type: 'text',
+                            text: H8
+                        });
+                      }
+/*----------------------------------------------------------菜單功能--------------------------------------------------------------*/
+    else  if(event.message.type === 'text' && message_lineTochat.trim() === '菜單功能') {
+      io.sockets.emit('new message', {
+          msg: '已接收菜單功能' + " 餐廳官網  " + "餐廳菜單  ",
+          name: receiverId,
+      });
+      let greet_msg = '菜單功能';
+      event.reply({
+          "type": "template",
+          "altText": "Welcome Template",
+          "template": {
+              "type": "buttons",
+              "thumbnailImageUrl": "https://0-t.imgbox.com/Mim9D7AP.jpg",
+              "title": "哈囉!\n歡迎來到嘿鬥，請你選擇底下的選項。",
+              "text": greet_msg,
+              "actions": [{
+                      "type": "uri",
+                      "label": "餐廳官網",
+                      "uri": "http://www.ha-to.com.tw/"
+                  },
+                  {
+                      "type": "message",
+                      "label": "餐廳菜單",
+                      "text": "餐廳菜單"
+                  }
+              ]
+          }
+      })
+    } else if(event.message.type === 'text' && message_lineTochat.trim() === '餐廳菜單') {
+      io.sockets.emit('new message', {
+          msg: '已接收餐廳菜單' + " 炸豬排定食  " + "海陸烤炸定食  " + "燒煲定食",
+          name: receiverId,
+      });
+
+      let greet_msg = '餐廳菜單';
+      event.reply({
+          "type": "template",
+          "altText": "Welcome Template",
+          "template": {
+              "type": "buttons",
+              "thumbnailImageUrl": "https://0-t.imgbox.com/JJO1jat5.jpg",
+              "title": "請問你查看什類型的定食？",
+              "text": greet_msg,
+              "actions": [{
+                      "type": "message",
+                      "label": "炸豬排定食",
+                      "text": "炸豬排定食"
+                  },
+                  {
+                      "type": "message",
+                      "label": "海陸烤炸定食",
+                      "text": "海陸烤炸定食"
+                            }
+                  ,{
+                      "type": "message",
+                      "label": "燒煲定食",
+                      "text": "燒煲定食"
+                              }
+
+                        ]
+                    }
+                })
+              }
+              else if(event.message.type === 'text' && message_lineTochat.trim() === '燒煲定食') {
+                           io.sockets.emit('new message', {
+                               msg: '已接收顯示燒煲定食' + "薑汁燒肉定食"+ "焗燒起司唐揚雞定食"+ "風味炒雞肉定食"+ "野菇燒煲定食定食(素)"+ "北海道極品海煲定食"/* "鹽烤鯖魚定食"+ "和風鮭魚漬定食"*/,
+                               name: receiverId,
+                           });
+                           event.reply({
+                               "type": "template",
+                               "altText": "Welcome Template",
+                               "template": {
+                                 type: 'carousel',
+                           "columns": [{
+                               "thumbnailImageUrl": 'https://0-t.imgbox.com/1duVl5CJ.jpg',
+                               "title": '薑汁燒肉定食',
+                               "text": '289元',
+                               "actions": [{
+                                   "type": 'uri',
+                                   "label": '前往訂位',
+                                   "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                               }]
+                           }, {
+                               "thumbnailImageUrl": 'https://7-t.imgbox.com/R2PZXeFo.jpg',
+                               "title": '焗燒起司唐揚雞定食',
+                               "text": '299元',
+                               "actions": [{
+                                   "type": 'uri',
+                                   "label": '前往訂位',
+                                   "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                               }]
+                           }
+                           , {
+                               "thumbnailImageUrl": 'https://9-t.imgbox.com/kl2P3DgM.jpg',
+                               "title": '風味炒雞肉定食',
+                               "text": '309元',
+                               "actions": [{
+                                   "type": 'uri',
+                                   "label": '前往訂位',
+                                   "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                               }]
+                           }, {
+                               "thumbnailImageUrl": 'https://3-t.imgbox.com/5WEzkwgk.jpg',
+                               "title": '野菇燒煲定食定食(素)',
+                               "text": '279元',
+                               "actions": [{
+                                   "type": 'uri',
+                                   "label": '前往訂位',
+                                   "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                               }]
+                           }, {
+                               "thumbnailImageUrl": 'https://7-t.imgbox.com/BHnmsW3F.jpg',
+                               "title": '北海道極品海煲定食',
+                               "text": '399元',
+                               "actions": [{
+                                   "type": 'uri',
+                                   "label": '前往訂位',
+                                   "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                               }]
+                           }]
+                           }
+                         })
+                       }
+
+               else if(event.message.type === 'text' && message_lineTochat.trim() === '海陸烤炸定食') {
+                            io.sockets.emit('new message', {
+                                msg: '已接收顯示海陸烤炸定食' + "和風炸雞腿定食"+ "南蠻炸雞定食"+ "信州味噌雞燒定食"+ "日式塔醬竹莢揚物定食"+ "海陸組合定食"/*+ "鹽烤鯖魚定食"+ "和風鮭魚漬定食"*/,
+                                name: receiverId,
+                            });
+                            event.reply({
+                                "type": "template",
+                                "altText": "Welcome Template",
+                                "template": {
+                                  type: 'carousel',
+                            "columns": [{
+                                "thumbnailImageUrl": 'https://8-t.imgbox.com/4ZDoCORx.jpg',
+                                "title": '和風炸雞腿定食',
+                                "text": '289元',
+                                "actions": [{
+                                    "type": 'uri',
+                                    "label": '前往訂位',
+                                    "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                                }]
+                            }, {
+                                "thumbnailImageUrl": 'https://6-t.imgbox.com/ig3jEWZ5.jpg',
+                                "title": '南蠻炸雞定食',
+                                "text": '299元',
+                                "actions": [{
+                                    "type": 'uri',
+                                    "label": '前往訂位',
+                                    "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                                }]
+                            }
+                            , {
+                                "thumbnailImageUrl": 'https://6-t.imgbox.com/a45I2TUs.jpg',
+                                "title": '信州味噌雞燒定食',
+                                "text": '299元',
+                                "actions": [{
+                                    "type": 'uri',
+                                    "label": '前往訂位',
+                                    "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                                }]
+                            }, {
+                                "thumbnailImageUrl": 'https://1-t.imgbox.com/VzHBr5cD.jpg',
+                                "title": '日式塔醬竹莢揚物定食',
+                                "text": '299元',
+                                "actions": [{
+                                    "type": 'uri',
+                                    "label": '前往訂位',
+                                    "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                                }]
+                            }, {
+                                "thumbnailImageUrl": 'https://3-t.imgbox.com/04EmhHuO.jpg',
+                                "title": '海陸組合定食',
+                                "text": '329元',
+                                "actions": [{
+                                    "type": 'uri',
+                                    "label": '前往訂位',
+                                    "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                                }]
+                            }]/*, {
+                                "thumbnailImageUrl": 'https://3-t.imgbox.com/04EmhHuO.jpg',
+                                "title": '鹽烤鯖魚定食',
+                                "text": '349元',
+                                "actions": [{
+                                    "type": 'uri',
+                                    "label": '前往訂位',
+                                    "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                                }]
+                            }, {
+                                "thumbnailImageUrl": 'https://0-t.imgbox.com/OVrM2seL.jpg',
+                                "title": '和風鮭魚漬定食',
+                                "text": '399元',
+                                "actions": [{
+                                    "type": 'uri',
+                                    "label": '前往訂位',
+                                    "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                                }]
+                            }*/
+                            }
+                          })
+                        }
+
+                        else if(event.message.type === 'text' && message_lineTochat.trim() === '炸豬排定食') {
+                                     io.sockets.emit('new message', {
+                                         msg: '已接收顯示炸豬排定食' + "炸里肌肉豬排定食"+ "炸腰內肉豬排定食"+ "炸起司豬排定食",
+                                         name: receiverId,
+                                     });
+                                     event.reply({
+                                         "type": "template",
+                                         "altText": "Welcome Template",
+                                         "template": {
+                                           type: 'carousel',
+                                     "columns": [{
+                                         "thumbnailImageUrl": 'https://7-t.imgbox.com/hTnKViSP.jpg',
+                                         "title": '炸里肌肉豬排定食',
+                                         "text": '269元',
+                                         "actions": [{
+                                             "type": 'uri',
+                                             "label": '前往訂位',
+                                             "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                                         }]
+                                     }, {
+                                         "thumbnailImageUrl": 'https://2-t.imgbox.com/CQtDUIb4.jpg',
+                                         "title": '炸腰內肉豬排定食',
+                                         "text": '269元',
+                                         "actions": [{
+                                             "type": 'uri',
+                                             "label": '前往訂位',
+                                             "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                                         }]
+                                     }
+                                     , {
+                                         "thumbnailImageUrl": 'https://8-t.imgbox.com/eovywVkf.jpg',
+                                         "title": '炸起司豬排定食',
+                                         "text": '309元',
+                                         "actions": [{
+                                             "type": 'uri',
+                                             "label": '前往訂位',
+                                             "uri": 'https://tw.eztable.com/restaurant/13419?from_type=search'
+                                         }]
+                                     }]
+                                     }
+                                   })
+                                 }
+
+/*----------------------------------------------------購物車------------------------------------------------------------*/
+    else if(event.message.type === 'text' && message_lineTochat.trim() === '購物車功能') {
+      io.sockets.emit('new message', {
+          msg: '已接收顯示購物車功能' + "女裝  " + "男裝  ",
+          name: receiverId,
+      });
+
+      let greet_msg = '我是UNI小精靈!\n歡迎來到Uniqlo的商店，選擇下面選項搜尋你要的服飾。\n\n選擇服飾後，會前往Uniqlo購物車(確認此商品是否還有存貨)';
+      event.reply({
+          "type": "template",
+          "altText": "Welcome Template",
+          "template": {
+              "type": "buttons",
+              "text": greet_msg,
+              "actions": [{
+                      "type": "message",
+                      "label": "女裝",
+                      "text": "女裝"
+                  },
+                  {
+                      "type": "message",
+                      "label": "男裝",
+                      "text": "男裝"
+                  },
+              ]
+          }
+      })
+    }    else if(event.message.type === 'text' && message_lineTochat.trim() === '女裝') {
+          io.sockets.emit('new message', {
+              msg: '已接收顯示女裝' + "女裝POLO衫  " + "女裝T恤(長袖/七分袖)",
+              name: receiverId,
+          });
+
+          let greet_msg = '你想找哪一類的衣服呢？';
+          event.reply({
+              "type": "template",
+              "altText": "Welcome Template",
+              "template": {
+                  "type": "buttons",
+                  "thumbnailImageUrl": "https://3-t.imgbox.com/ZnXsAKmo.jpg",
+                  "text": greet_msg,
+                  "actions": [{
+                          "type": "message",
+                          "label": "女裝POLO衫",
+                          "text": "女裝POLO衫"
+                      },
+                      {
+                          "type": "message",
+                          "label": "女裝T恤(長袖/七分袖)",
+                          "text": "女裝T恤(長袖/七分袖)"
+                      },
+                  ]
+              }
+          })
+        } else if(event.message.type === 'text' && message_lineTochat.trim() === '男裝') {
+              io.sockets.emit('new message', {
+                  msg: '已接收顯示男裝' + "男裝POLO衫  " + "男裝牛仔褲  ",
+                  name: receiverId,
+              });
+
+              let greet_msg = '你想找哪一類的衣服呢？';
+              event.reply({
+                  "type": "template",
+                  "altText": "Welcome Template",
+                  "template": {
+                      "type": "buttons",
+                      "thumbnailImageUrl": "https://0-t.imgbox.com/urSn5N9M.jpg",
+                      "text": greet_msg,
+                      "actions": [{
+                              "type": "message",
+                              "label": "男裝POLO衫",
+                              "text": "男裝POLO衫"
+                          },
+                          {
+                              "type": "message",
+                              "label": "男裝牛仔褲",
+                              "text": "男裝牛仔褲"
+                          },
+                      ]
+                  }
+              })
+            }
+            else if(event.message.type === 'text' && message_lineTochat.trim() === '女裝POLO衫') {
+                  io.sockets.emit('new message', {
+                      msg: '已接收顯示女裝POLO衫' + "彈性網眼POLO衫(女)" + "寬版開領POLO衫(女)" + "羅紋POLO衫(短袖)(女)",
+                      name: receiverId,
+                  });
+                  event.reply({
+                      "type": "template",
+                      "altText": "Welcome Template",
+                      "template": {
+                        type: 'carousel',
+                  "columns": [{
+                      "thumbnailImageUrl": 'https://7-t.imgbox.com/7ldQdjRB.jpg',
+                      "title": '彈性網眼POLO衫(女)',
+                      "text": 'NT$590',
+                      "actions": [{
+                          "type": 'uri',
+                          "label": '前往購物車',
+                          "uri": 'http://www.uniqlo.com/tw/store/addcart/goods/182222-69'
+                      }]
+                  }, {
+                      "thumbnailImageUrl": 'https://7-t.imgbox.com/mNhSZSKr.jpg',
+                      "title": '寬版開領POLO衫(女)',
+                      "text": 'NT$590',
+                      "actions": [{
+                          "type": 'uri',
+                          "label": '前往購物車',
+                          "uri": 'http://www.uniqlo.com/tw/store/goods/188203'
+                      }]
+                  }
+                  , {
+                      "thumbnailImageUrl": 'https://6-t.imgbox.com/T5AWfToR.jpg',
+                      "title": '羅紋POLO衫(短袖)(女)',
+                      "text": 'NT$390',
+                      "actions": [{
+                          "type": 'uri',
+                          "label": '前往購物車',
+                          "uri": 'http://www.uniqlo.com/tw/store/goods/193086'
+                      }]
+                  }]
+                  }
+                })
+              }
+              else if(event.message.type === 'text' && message_lineTochat.trim() === '女裝T恤(長袖/七分袖)') {
+                    io.sockets.emit('new message', {
+                        msg: '已接收女裝T恤' + "一字領上衣T恤(女)" + "SUPIMA COTTON 圓領T恤(7分袖)(女)" + "SUPIMA COTTON 圓領T恤(長袖)(女)",
+                        name: receiverId,
+                    });
+                    event.reply({
+                        "type": "template",
+                        "altText": "Welcome Template",
+                        "template": {
+                          type: 'carousel',
+                    "columns": [{
+                        "thumbnailImageUrl": 'https://9-t.imgbox.com/IqZyIqGX.jpg',
+                        "title": '一字領上衣T恤(女)',
+                        "text": 'NT$590',
+                        "actions": [{
+                            "type": 'uri',
+                            "label": '前往購物車',
+                            "uri": 'http://www.uniqlo.com/tw/store/goods/199888'
+                        }]
+                    }, {
+                        "thumbnailImageUrl": 'https://6-t.imgbox.com/gDRPXNSC.jpg',
+                        "title": 'SUPIMA COTTON 圓領T恤(7分袖)(女)',
+                        "text": 'NT$390',
+                        "actions": [{
+                            "type": 'uri',
+                            "label": '前往購物車',
+                            "uri": 'http://www.uniqlo.com/tw/store/goods/182153'
+                        }]
+                    }
+                    , {
+                        "thumbnailImageUrl": 'https://0-t.imgbox.com/q7MCHAQR.jpg',
+                        "title": 'SUPIMA COTTON 圓領T恤(長袖)(女)',
+                        "text": 'NT$390',
+                        "actions": [{
+                            "type": 'uri',
+                            "label": '前往購物車',
+                            "uri": 'http://www.uniqlo.com/tw/store/goods/182154'
+                        }]
+                    }]
+                    }
+                  })
+                }
+                else if(event.message.type === 'text' && message_lineTochat.trim() === '男裝POLO衫') {
+                      io.sockets.emit('new message', {
+                          msg: '已接收顯示男裝POLO衫' + "DRY 網眼條紋POLO衫(短袖)(男)" + "DRY EX POLO衫(短袖)(男)" + "DRY 舒適襯衫領POLO衫(短袖)(鈕釦領)(男)",
+                          name: receiverId,
+                      });
+                      event.reply({
+                          "type": "template",
+                          "altText": "Welcome Template",
+                          "template": {
+                            type: 'carousel',
+                      "columns": [{
+                          "thumbnailImageUrl": 'https://8-t.imgbox.com/RNwQRq98.jpg',
+                          "title": 'DRY 網眼條紋POLO衫(短袖)(男)',
+                          "text": 'NT$790',
+                          "actions": [{
+                              "type": 'uri',
+                              "label": '前往購物車',
+                              "uri": 'http://www.uniqlo.com/tw/store/goods/195393'
+                          }]
+                      }, {
+                          "thumbnailImageUrl": 'https://9-t.imgbox.com/Htmjhe7W.jpg',
+                          "title": 'DRY EX POLO衫(短袖)(男)',
+                          "text": 'NT$790',
+                          "actions": [{
+                              "type": 'uri',
+                              "label": '前往購物車',
+                              "uri": 'http://www.uniqlo.com/tw/store/goods/169372'
+                          }]
+                      }
+                      , {
+                          "thumbnailImageUrl": 'https://2-t.imgbox.com/LSYcL4tL.jpg',
+                          "title": 'DRY 舒適襯衫領POLO衫(短袖)(鈕釦領)(男)',
+                          "text": 'NT$790',
+                          "actions": [{
+                              "type": 'uri',
+                              "label": '前往購物車',
+                              "uri": 'http://www.uniqlo.com/tw/store/goods/193623'
+                          }]
+                      }]
+                      }
+                    })
+                  }
+                  else if(event.message.type === 'text' && message_lineTochat.trim() === '男裝牛仔褲') {
+                        io.sockets.emit('new message', {
+                            msg: '已接收顯示男裝牛仔褲' + "Slim Fit 束口牛仔褲(男)" + "Regular Fit 刷破牛仔褲(男)" + "MIRACLE AIR REGULAR FIT 牛仔褲(男)",
+                            name: receiverId,
+                        });
+                        event.reply({
+                            "type": "template",
+                            "altText": "Welcome Template",
+                            "template": {
+                              type: 'carousel',
+                        "columns": [{
+                            "thumbnailImageUrl": 'https://6-t.imgbox.com/BHbTLzct.jpg',
+                            "title": 'Slim Fit 束口牛仔褲(男)',
+                            "text": 'NT$990',
+                            "actions": [{
+                                "type": 'uri',
+                                "label": '前往購物車',
+                                "uri": 'http://www.uniqlo.com/tw/store/goods/183006'
+                            }]
+                        }, {
+                            "thumbnailImageUrl": 'https://7-t.imgbox.com/fsfzvmNz.jpg',
+                            "title": 'Regular Fit 刷破牛仔褲(男)',
+                            "text": 'NT$1490',
+                            "actions": [{
+                                "type": 'uri',
+                                "label": '前往購物車',
+                                "uri": 'http://www.uniqlo.com/tw/store/goods/192943'
+                            }]
+                        }
+                        , {
+                            "thumbnailImageUrl": 'https://2-t.imgbox.com/1CY1M5aq.jpg',
+                            "title": 'MIRACLE AIR REGULAR FIT 牛仔褲(男)',
+                            "text": 'NT$1490',
+                            "actions": [{
+                                "type": 'uri',
+                                "label": '前往購物車',
+                                "uri": 'http://www.uniqlo.com/tw/store/goods/403888'
+                            }]
+                        }]
+                        }
+                      })
+                    }
+/*----------------------------------------------------問卷功能------------------------------------------------------------*/
+else if(event.message.type === 'text' && message_lineTochat.trim() === '問卷功能') {
+      io.sockets.emit('new message', {
+          msg: '已接收問卷功能' + "Google Form問卷" + "SurveyCake問卷" + "Line@問卷",
+          name: receiverId,
+      });
+      event.reply({
+          "type": "template",
+          "altText": "Welcome Template",
+          "template": {
+              "type": "buttons",
+              "title": "問卷功能列表",
+              "text": "請選擇要做哪份問卷。",
+              "actions": [{
+                      "type": "uri",
+                      "label": "Google Form問卷",
+                      "uri": 'https://docs.google.com/a/fongyuinvest.com/forms/d/e/1FAIpQLScjfeF9gEmXjk_MgI7cFPpZoTTJU6KCpVv-igEJb5xvdUGFyg/viewform'
+                  },
+                  {
+                      "type": "uri",
+                      "label": "SurveyCake問卷",
+                      "uri": 'https://www.surveycake.com/s/Mv3RD'
+                            }
+                  ,{
+                      "type": "message",
+                      "label": "Line@問卷",
+                      "text": "Line@問卷"
+                              }
+
+                        ]
+                    }
+                })
+  }
+
+                else {
+        io.sockets.emit('new message', {
+            msg: message_lineTochat,
+            name: receiverId
+        });
+        usersRef.push({
+            message: message_lineTochat,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+    }
+    // 訊息是xxxxxx, template message
+    // AI 機器人 設定
+    // var request = appApiai.textRequest(message_lineTochat, {
+    //     sessionId: '46110120-6a78-4a0e-a5f0-a8596b53d37e'
+    // });
+    // request.on('response', function(response) {
+    //     console.log(response);
+    //     let res_msg = response.result.fulfillment.speech
+    //     if (response.result.action !== 'input.unknown') {
+    //         io.sockets.emit('new message', {
+    //             msg: res_msg,
+    //             name: 'BOT'
+    //         });
+    //         event.reply({
+    //             type: 'text',
+    //             text: 'BOT：' + res_msg
+    //         });
+    //     }
+    // });
+    // request.on('error', function(error) {
+    //     console.log(error);
+    // });
+    // request.end();
+    // AI  機器人 end
+
+});
+app.post('/webhook/', linebotParser);
+
+
+/**
+ * Socket.io
+ */
+//連接
+io.sockets.on('connection', (socket) => {
+
+    // 新使用者
+    socket.on('new user', (data, callback) => {
+        // if(nicknames.indexOf(data) != -1){
+        if (data in users) {
+            callback(false);
+        } else {
+            callback(true);
+            socket.nickname = data;
+            users[socket.nickname] = socket;
+            // nicknames.push(socket.nickname);
+            // updateNicknames();
+        }
+    });
+
+    // function updateNicknames() {
+    //     io.sockets.emit('usernames', Object.keys(users));
+    // }
+
+    // 從SHIELD chat傳送訊息
+    socket.on('send message', (data, callback) => {
+        console.log(data, receiverId);
+        var msg = data.trim();
+        var message;
+
+        if (msg.includes('/sticker')) {
+            message = {
+                type: "sticker",
+                packageId: "1",
+                stickerId: "10"
+            };
+        } else {
+            message = {
+                type: "text",
+                text: msg
+            };
+        }
+
+        let d = Date.now();
+        let date = new Date(d);
+
+        // 訊息傳到後台介面上
+        if (msg.indexOf('.com') !== -1 || msg.indexOf('.edu') !== -1 || msg.indexOf('.net') !== -1 || msg.indexOf('.io') !== -1 || msg.indexOf('.org') !== -1) {
+            if (message_lineTochat.indexOf('https') !== -1 || message_lineTochat.indexOf('http') !== -1) {
+                io.sockets.emit('new message', {
+                    msg: '<a href=' + message_lineTochat + '>' + message_lineTochat + '</a>',
+                    name: 'Agent ' + socket.nickname,
+                    id: receiverId
+                });
+            } else {
+                io.sockets.emit('new message', {
+                    msg: '<a href="https://' + message_lineTochat + '/" target="_blank">' + message_lineTochat + '</a>',
+                    name: 'Agent ' + socket.nickname,
+                    id: receiverId
+                });
+            }
+        } else if (msg.includes('/sticker')) {
+            io.sockets.emit('new message', {
+                msg: 'Send sticker to user',
+                name: 'Agent ' + socket.nickname,
+                id: receiverId
+            });
+        } else {
+            io.sockets.emit('new message', {
+                msg: msg,
+                name: 'Agent ' + socket.nickname,
+                id: receiverId
+            });
+        }
+
+        // 訊息傳到LINE
+        if (receiverId !== undefined) {
+            bot.push(receiverId, message);
+        }
+
+        // 訊息儲存到firebase資料庫
+        agentsRef.push({
+            message: msg,
+            agent: socket.nickname,
+            messageTime: date.toString()
+        });
+    });
+
+    socket.on('disconnect', (data) => {
+        if (!socket.nickname) return;
+        delete users[socket.nickname];
+        // nicknames.splice(nicknames.indexOf(socket.nickname), 1);
+        // updateNicknames();
+    });
+});
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+});
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+    var port = parseInt(val, 10);
+
+    if (isNaN(port)) {
+        // named pipe
+        return val;
+    }
+
+    if (port >= 0) {
+        // port number
+        return port;
+    }
+
+    return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+
+    var bind = typeof port === 'string' ?
+        'Pipe ' + port :
+        'Port ' + port;
+
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+    var addr = server.address();
+    var bind = typeof addr === 'string' ?
+        'pipe ' + addr :
+        'port ' + addr.port;
+    debug('Listening on ' + bind);
+}

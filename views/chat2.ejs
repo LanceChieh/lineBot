@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <title><%= title %></title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="stylesheets/sb-admin-2.css">
+    <!-- Morris Charts CSS -->
+    <link rel="stylesheet" href="vendor/morrisjs/morris.css" >
+    <link rel="stylesheet" href="stylesheets/main.css" />
+    <link rel="stylesheet" href="stylesheets/chat.css" />
+
+  </head>
+  <body>
+
+
+    <div id="wrapper">
+      <!-- Navigation -->
+      <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+          <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="/">PS Admin</a>
+          </div>
+          <!-- /.navbar-header -->
+
+          <ul class="nav navbar-top-links navbar-right">
+              <!-- /.dropdown -->
+              <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                      <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-user">
+                      <li><a href="/profile"><i class="fa fa-user fa-fw"></i> User Profile</a></li>
+                      <li class="divider"></li>
+                      <li><a href="#" id="signout-btn"><i class="fa fa-sign-out fa-fw"></i> Logout</a></li>
+                  </ul>
+                  <!-- /.dropdown-user -->
+              </li>
+              <!-- /.dropdown -->
+          </ul>
+          <!-- /.navbar-top-links -->
+
+          <div class="navbar-default sidebar" role="navigation">
+              <div class="sidebar-nav navbar-collapse">
+                  <ul class="nav" id="side-menu">
+                    <li>
+                        <a href="/"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/chat" class="active"><i class="fa fa-commenting fa-fw"></i> Chat</a>
+                    </li>
+                    <li>
+                        <a href="/calendar"><i class="fa fa-table fa-fw"></i> Calendar</a>
+                    </li>
+
+                    <li>
+                        <a href="/ticket"><i class="fa fa-ticket fa-fw"></i> Support</a>
+                    </li>
+                  </ul>
+              </div>
+              <!-- /.sidebar-collapse -->
+          </div>
+          <!-- /.navbar-static-side -->
+      </nav>
+    </div>
+
+    <!-- <div id="home">
+      <div id="nickWrap">
+        <p>
+          Enter a username
+        </p>
+        <p id="nickError" class="error"></p>
+        <form action="" id="setNick">
+          <input type="text" name="" value="" id="nickname">
+          <input type="submit"/>
+        </form>
+      </div>
+
+      <div id="contentWrap">
+        <div id="chatWrap">
+          <div id="chat"></div>
+
+          <form action="" id="send-message">
+            <input style="width:89%" id="message" />
+            <input type="submit" />
+          </form>
+        </div>
+
+        <div id="users"></div>
+      </div>
+
+      <img id="img-stream" src="" />
+    </div> -->
+
+    <div id="home">
+      <h4 style="text-align: center" id="printAgent"></h4>
+
+      <div class="tab">
+        <h4 class="tablinks">Users Online</h4>
+        <ol class="list-group" id="clients"></ol>
+      </div>
+
+      <div id="chat-rooms"></div>
+    </div>
+
+
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js'></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
+    <script src="javascripts/firebaseConfig.js"></script>
+    <script src="javascripts/sb-admin-2.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="javascripts/chat2.js"></script>
+
+  </body>
+</html>

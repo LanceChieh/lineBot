@@ -1,0 +1,684 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('project-shield:server');
+var http = require('http');
+var firebase = require('firebase');
+var linebot = require('linebot');
+
+
+var config = {
+    apiKey: "AIzaSyAqzIra9YkeE0HZZBSwXrjh4GemO7yVdmI",
+    authDomain: "shield-88fd0.firebaseapp.com",
+    databaseURL: "https://shield-88fd0.firebaseio.com",
+    projectId: "shield-88fd0",
+    storageBucket: "shield-88fd0.appspot.com",
+    messagingSenderId: "376341346069"
+};
+firebase.initializeApp(config);
+
+const usersRef = firebase.database().ref().child('chats/users');
+const agentsRef = firebase.database().ref().child('chats/agents');
+
+const auth = firebase.auth();
+// console.log(auth.app);
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+const io = require('socket.io').listen(server);
+
+/**
+ * Variables
+ */
+ 
+var users = {};
+//webhook event
+var message_lineTochat;
+var receiverId = '';
+// LINE bot設定
+var bot = linebot({
+    channelId: '1516667468',
+    channelSecret: 'd89c9a5ef9ae83fbdfd2fc59ab451f98',
+    channelAccessToken: 'yeeDeC5dExJDeVEPPf2dMTlAoZE4izrqX6bBaldhddpG7esOFEpxm5m5dMIIB7pz0zIS49QZxJBFgAkxQZWmfy9toaiTR+B/q1pz7F5xkf+dljkSJV1krOOtrT93BSSYydIZLnt0zxX8JCqWF4uE4wdB04t89/1O/w1cDnyilFU='
+});
+const linebotParser = bot.parser();
+//count message types
+/*
+for type in event.message.type{
+  var ('type_'+type) = 0;
+};
+*/
+var type_sticker = 0;
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/* ====================================== */
+/* =========  MULTICAST TRYING  ========= */
+/* ====================================== */
+/* let userId = auth.currentUser.uid;
+console.log(auth);
+database.ref('chats/' + userId).on('value', snap => {
+    let dataArray = [];
+    let testVal = snap.val();
+    let myIds = Object.keys(testVal);
+    // console.log(myIds.length);
+    for (var i = 0; i < myIds.length; i++) {
+        dataArray.push(snap.child(myIds[i]).val());
+        $('#loadMsg').append(
+            ' < tr >' +
+            ' < td > ' +'Youre now connected to client: '+ receiverId + ' < /td>' +
+            ' < td > ' + dataArray[i].msg + ' < /td>' +
+            ' < /tr>'
+        );
+    }
+});
+*/
+/*  =========================================================  */
+/*  =========================================================  */
+
+
+// LINE bot implement
+bot.on('message', event => {
+
+    console.log(event);
+    let d = Date.now();
+    let date = new Date(d);
+    message_lineTochat = event.message.type;
+    message_showText = event.message.text;
+    address = event.message.address;
+    latitude = event.message.latitude;
+    longitude = event.message.longitude;
+    receiverId = event.source.userId;
+
+
+    //  ===================  TYPES ====================
+    if (event.message.type === 'sticker') {
+
+        io.sockets.emit('new message', {
+            msg: 'Sticker received. Please check your phone.',
+            name: receiverId
+        });
+
+        usersRef.push({
+
+            message: message_lineTochat,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+
+
+        event.message.content().then(function(content) {
+            /*'base64'是圖片的編碼*/
+            console.log(content.toString('base64'));
+            io.sockets.emit('new message', {
+                msg: '<a target="_blank" href="data:sticker/jpg;base64,' + content.toString('base64') + '" >STICKER LINK(not available yet)</a>',
+                receiverId: 'Visitor'
+            });
+
+
+        });
+
+    } else if (event.message.type === 'location') {
+        io.sockets.emit('new message', {
+            msg: 'Location received: ',
+            name: receiverId
+        });
+        io.sockets.emit('new message', {
+            msg: address,
+            name: receiverId
+        });
+
+        usersRef.push({
+
+            message: message_lineTochat,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+
+        event.message.content().then(function(content) {
+            /*'base64'是圖片的編碼*/
+            console.log(content.toString('base64'));
+            /*把編碼轉換成圖片(image/png)做成連結的方式*/
+            io.sockets.emit('new message', {
+                msg: '<a target="_blank" href=" https://www.google.com.tw/maps/place/' + content.toString('base64') + '/@' + latitude + ',' + longitude + ',15z/data=!4m5!3m4!1s0x0:0x496596e7748a5757!8m2!3d' + latitude + '!4d' + longitude + '">LOCATION LINK</a>',
+                receiverId: 'Visitor'
+            });
+        }).catch(function(error) {
+            // error
+        });
+
+    } else if (event.message.type === 'image') {
+        io.sockets.emit('new message', {
+            msg: 'Image received. Please check link',
+            name: receiverId
+        });
+
+        usersRef.push({
+            message: message_lineTochat,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+
+        event.message.content().then(function(content) {
+            /*'base64'是圖片的編碼*/
+            console.log(content.toString('base64'));
+            /*把編碼轉換成圖片(image/png)做成連結的方式*/
+            io.sockets.emit('new message', {
+                msg: '<a target="_blank" href="data:image/png;base64,' + content.toString('base64') + '" ' +
+                    'width="70" height="38" alt="image embedded using base64 encoding!">IMAGE LINK</a>',
+                name: receiverId
+            });
+
+        }).catch(function(error) {
+            // error
+        });
+
+    } else if (event.message.type === 'audio') {
+        io.sockets.emit('new message', {
+            msg: 'Audio received. Please check link.',
+            name: receiverId
+        });
+
+        usersRef.push({
+
+            message: message_lineTochat,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+
+        event.message.content().then(function(content) {
+            console.log(content.toString('base64'));
+            io.sockets.emit('new message', {
+                msg: '<a target="_blank" href="data:audio/mp4;base64,' + content.toString('base64') + '" ' +
+                    '">AUDIO LINK</a>',
+                name: receiverId
+            });
+
+        }).catch(function(error) {
+            // error
+        });
+    } else if (event.message.type === 'video') {
+        io.sockets.emit('new message', {
+            msg: 'Video received. Please check link.',
+            name: receiverId
+        });
+
+        usersRef.push({
+
+            message: message_lineTochat,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+        event.message.content().then(function(content) {
+            console.log(content.toString('base64'));
+            io.sockets.emit('new message', {
+                msg: '<a target="_blank" href="data:video/mp4;base64,' + content.toString('base64') + '" ' +
+                    '">VIDEO LINK</a>',
+                name: receiverId
+            });
+
+        }).catch(function(error) {
+            // error
+        });
+
+        /* ================  LINKS  ================  */
+    } else if (event.message.type === 'text' && message_showText.indexOf('http') !== -1) {
+        io.sockets.emit('new message', {
+            msg: '<a href=' + message_showText + '>' + message_showText + '</a>',
+            name: receiverId
+        });
+        usersRef.push({
+            message: message_showText,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+    } else if (event.message.type === 'text' && message_showText.indexOf('.com') !== -1) {
+        io.sockets.emit('new message', {
+            msg: '<a href=' + message_showText + '>' + message_showText + '</a>',
+            name: receiverId
+        });
+        usersRef.push({
+            message: message_showText,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+    } else if (event.message.type === 'text' && message_showText.indexOf('.org') !== -1) {
+        io.sockets.emit('new message', {
+            msg: '<a href=' + message_showText + '>' + message_showText + '</a>',
+            name: receiverId
+        });
+        usersRef.push({
+            message: message_showText,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+    } else if (event.message.type === 'text' && message_showText.indexOf('.net') !== -1) {
+        io.sockets.emit('new message', {
+            msg: '<a href=' + message_showText + '>' + message_showText + '</a>',
+            name: receiverId
+        });
+        usersRef.push({
+            message: message_showText,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+    } else if (event.message.type === 'text' && message_showText.indexOf('.edu') !== -1) {
+        io.sockets.emit('new message', {
+            msg: '<a href=' + message_showText + '>' + message_showText + '</a>',
+            name: receiverId
+        });
+        usersRef.push({
+            message: message_showText,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+    } else if (event.message.type === 'text' && message_showText.indexOf('.io') !== -1) {
+        io.sockets.emit('new message', {
+            msg: '<a href=' + message_showText + '>' + message_showText + '</a>',
+            name: receiverId
+        });
+        usersRef.push({
+            message: message_showText,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+
+
+        /* ================  TEMPLATES  ================  */
+    } else if (event.message.type === 'text' && message_showText.indexOf('菜單') !== -1) {
+        io.sockets.emit('new message', {
+            msg: '已發送菜單',
+            name: 'notice'
+        });
+        event.reply({
+            "type": "template",
+            "altText": "this is a buttons template",
+            "template": {
+                "type": "buttons",
+                "thumbnailImageUrl": "https://example.com/bot/images/image.jpg",
+                "title": "Menu",
+                "text": "Please select",
+                "actions": [{
+                        "type": "postback",
+                        "label": "Buy",
+                        "data": "action=buy&itemid=123"
+                    },
+                    {
+                        "type": "postback",
+                        "label": "Add to cart",
+                        "data": "action=add&itemid=123"
+                    },
+                    {
+                        "type": "uri",
+                        "label": "View detail",
+                        "uri": "http://example.com/page/123"
+                    }
+                ]
+            }
+        })
+        usersRef.push({
+            message: message_showText,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+
+    } else if (event.message.type === 'text' && message_showText.indexOf('選項') !== -1) {
+        io.sockets.emit('new message', {
+            msg: '已發送選項',
+            name: 'notice'
+        });
+        event.reply({
+            "type": "template",
+            "altText": "this is a confirm template",
+            "template": {
+                "type": "confirm",
+                "text": "Are you sure?",
+                "actions": [{
+                        "type": "message",
+                        "label": "Yes",
+                        "text": "yes"
+                    },
+                    {
+                        "type": "message",
+                        "label": "No",
+                        "text": "no"
+                    }
+                ]
+            }
+        })
+        usersRef.push({
+            message: message_showText,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+
+    } else if (event.message.type === 'text' && message_showText.indexOf('旋轉盤') !== -1) {
+        io.sockets.emit('new message', {
+            msg: '已發送旋轉盤',
+            name: 'notice'
+        });
+        event.reply({
+            "type": "template",
+            "altText": "this is a carousel template",
+            "template": {
+                "type": "carousel",
+                "columns": [{
+                        "thumbnailImageUrl": "https://example.com/bot/images/item1.jpg",
+                        "title": "this is menu",
+                        "text": "description",
+                        "actions": [{
+                                "type": "postback",
+                                "label": "Buy",
+                                "data": "action=buy&itemid=111"
+                            },
+                            {
+                                "type": "postback",
+                                "label": "Add to cart",
+                                "data": "action=add&itemid=111"
+                            },
+                            {
+                                "type": "uri",
+                                "label": "View detail",
+                                "uri": "http://example.com/page/111"
+                            }
+                        ]
+                    },
+                    {
+                        "thumbnailImageUrl": "https://example.com/bot/images/item2.jpg",
+                        "title": "this is menu",
+                        "text": "description",
+                        "actions": [{
+                                "type": "postback",
+                                "label": "Buy",
+                                "data": "action=buy&itemid=222"
+                            },
+                            {
+                                "type": "postback",
+                                "label": "Add to cart",
+                                "data": "action=add&itemid=222"
+                            },
+                            {
+                                "type": "uri",
+                                "label": "View detail",
+                                "uri": "http://example.com/page/222"
+                            }
+                        ]
+                    }
+                ]
+            }
+        })
+        usersRef.push({
+            message: message_showText,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+
+
+        /*  ===============  TEXTS  ===============  */
+
+
+    } else {
+        io.sockets.emit('new message', {
+            msg: message_showText,
+            name: receiverId
+        });
+        usersRef.push({
+            message: message_showText,
+            user: receiverId,
+            messageTime: date.toString()
+        });
+    }
+    //============================================
+
+    //  ================================================
+
+
+    usersRef.push({
+        message: message_lineTochat,
+        user: receiverId,
+        messageTime: date.toString()
+    });
+});
+app.post('/webhook/', linebotParser);
+
+
+//============================================
+//========= GET REQUEST LINE CONTENT  =========
+
+
+
+//  ============  AUTO REPLY: REPEAT ===============
+/*
+  event.reply(message_lineTochat).then(function(data) {
+      // success
+      console.log(message_lineTochat);
+    }).catch(function(error) {
+      // error
+      console.log('error');
+    });
+*/
+//  =========== AUTO REPLY: GREETINGS ==============
+/*    setTimeout(function(){
+    var userId = 'U0cbbba0d281fc5b095caaacac73fd1b5';
+    var sendMsg = '歡迎';
+    bot.push(userId,sendMsg);
+    console.log('send: '+sendMsg);
+},1000);
+*/
+
+//  ================================================
+//  ================= PARSE EVENT FROM JSON  =================
+/*
+my $req = Plack::Request->new( ... );
+my $events = $bot->parse_events_from_json($req->content);
+for my $event (@{ $events }) {
+    unless ($event->is_unfollow_event && $event->is_leave_event) {
+        # Get a reply_token
+        my $reply_token = $event->reply_token;
+    }
+    if ($event->is_user_event) {
+        # Get a user_id
+        my $user_id = $event->user_id;
+    }
+    if ($event->is_room_event) {
+        # Get a room_id
+        my $room_id = $event->room_id;
+    }
+    if ($event->is_group_event) {
+        # Get a group_id
+        my $group_id = $event->group_id;
+    }
+
+    if ($event->is_message_event) {
+        # Get a message id
+        my $message_id = $event->message_id;
+    }
+}
+
+//  =============  GET CONTENT  ===================
+my $ret = $bot->get_message_content($message_id);
+if ($ret->is_success) {
+    my $filename = $ret->fh->filename;
+    open my $fh, '<', $file or die "$!: $file";
+    ...
+}
+*/
+
+//  ================================================
+
+
+
+//群組訊息接收
+// app.post('/webhook/', line.validator.validateSignature(), (req, res, next) => {
+//   // get content from request body
+//   const promises = req.body.events.map(event => {
+//     console.log(event);
+//     // reply message
+//     let d = Date.now();
+//     let date = new Date(d);
+//     message_lineTochat = event.message.text;
+//     receiverId = event.source.userId;
+//
+//     io.sockets.emit('new message', {msg: message_lineTochat, name: 'Visitor'});
+//
+//     usersRef.push({
+//       message: message_lineTochat,
+//       user: receiverId,
+//       messageTime: date.toString()
+//     });
+//
+//   });
+//   Promise
+//     .all(promises)
+//     .then(() => res.json({success: true}));
+// });
+
+/**
+ * Socket.io
+ */
+//連接
+io.sockets.on('connection', (socket) => {
+
+    // 新使用者
+    socket.on('new user', (data, callback) => {
+        // if(nicknames.indexOf(data) != -1){
+        if (data in users) {
+            callback(false);
+        } else {
+            callback(true);
+            socket.person = data;
+            users[socket.person] = socket;
+            // nicknames.push(socket.nickname);
+            //            updateNicknames();
+        }
+    });
+
+    /*    function updateNicknames() {
+            io.sockets.emit('usernames', Object.keys(users));
+        }
+    */
+    socket.on('send message', (data, callback) => {
+        var msg = data.trim();
+        let d = Date.now();
+        let date = new Date(d);
+        io.sockets.emit('new message', {
+            msg: msg,
+            name: 'you'
+        });
+        // bot.push(receiverId, msg);
+
+        // console.log(socket);
+
+        // agentsRef.push({
+        //     message: msg,
+        //     agent: socket.person,
+        //     messageTime: date.toString()
+        // });
+
+    });
+
+    socket.on('disconnect', (data) => {
+        if (!socket.nickname) return;
+        delete users[socket.nickname];
+        // nicknames.splice(nicknames.indexOf(socket.nickname), 1);
+        updateNicknames();
+    });
+});
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+});
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+    var port = parseInt(val, 10);
+
+    if (isNaN(port)) {
+        // named pipe
+        return val;
+    }
+
+    if (port >= 0) {
+        // port number
+        return port;
+    }
+
+    return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+
+    var bind = typeof port === 'string' ?
+        'Pipe ' + port :
+        'Port ' + port;
+
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+    var addr = server.address();
+    var bind = typeof addr === 'string' ?
+        'pipe ' + addr :
+        'port ' + addr.port;
+    debug('Listening on ' + bind);
+}

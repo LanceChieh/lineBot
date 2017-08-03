@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= title %></title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="stylesheets/sb-admin-2.css">
+    <link rel="stylesheet" href="stylesheets/main.css">
+    <link rel="stylesheet" href="stylesheets/ticket.css">
+  </head>
+  <body>
+
+
+    <div id="wrapper">
+      <!-- Navigation -->
+      <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+          <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="/">PS Admin</a>
+          </div>
+          <!-- /.navbar-header -->
+
+          <ul class="nav navbar-top-links navbar-right">
+              <!-- /.dropdown -->
+              <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                      <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-user">
+                      <li><a href="/profile"><i class="fa fa-user fa-fw"></i> User Profile</a></li>
+                      <li class="divider"></li>
+                      <li><a href="/login" id="signout-btn"><i class="fa fa-sign-out fa-fw"></i> Logout</a></li>
+                  </ul>
+                  <!-- /.dropdown-user -->
+              </li>
+              <!-- /.dropdown -->
+          </ul>
+          <!-- /.navbar-top-links -->
+
+          <div class="navbar-default sidebar" role="navigation">
+              <div class="sidebar-nav navbar-collapse">
+                  <ul class="nav" id="side-menu">
+                    <li>
+                        <a href="/"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/chat"><i class="fa fa-commenting fa-fw"></i> Chat</a>
+                    </li>
+                    <li>
+                        <a href="/calendar"><i class="fa fa-table fa-fw"></i> Calendar</a>
+                    </li>
+
+                    <li>
+                        <a href="/ticket" class="active"><i class="fa fa-ticket fa-fw"></i> Support</a>
+                    </li>
+                    <li>
+                       <a href="https://admin-e610d.firebaseapp.com"><i class="fa fa-cogs fa-fw"></i> Admin</a>
+                    </li>
+                  </ul>
+              </div>
+              <!-- /.sidebar-collapse -->
+          </div>
+          <!-- /.navbar-static-side -->
+      </nav>
+    </div>
+
+    <div id="ticket-wrap">
+      <div id="ticket-header">
+        <div id="header-left">
+          <span class="bigFont">Ticket List</span>
+        </div>
+        <div id="header-right">
+          <div class="add-btn">
+            <!-- Button trigger modal -->
+            <!-- <button type="button" class="btn btn-default inner-add" data-toggle="modal" data-target="#quickAdd">
+              <span class="fa fa-plus fa-fw"></span> Quick Add
+            </button> -->
+            <a href="/tform" class="btn btn-default inner-add-complete">
+              <span class="fa fa-plus fa-fw"></span> Add a Ticket
+            </a>
+          </div>
+        </div>
+      </div>
+      <br />
+      <div id="ticket-search">
+        <form class="form-inline">
+          <div class="input-group">
+            <input type="text" class="form-control" id="exampleInputAmount" placeholder="">
+            <div class="input-group-addon"><span class="fa fa-search fa-fw" id="ticket-search"></span></div>
+          </div>
+
+<!--          <select id="cate"  class="form-control">
+            <option value="default">Select a category</option>
+            <option>9th floor</option>
+            <option>yy architects</option>
+            <option>Fong Yu Invest</option>
+            <option>Tinichats</option>
+          </select> -->
+        </form>
+      </div>
+      <br />
+      <div id="ticket-tab">
+        <div class="tab">
+          <button class="tablinks" onclick="openCity(event, 'Open')" id="defaultOpen">Open</button>
+          <button class="tablinks" onclick="openCity(event, 'Closed')">Closed</button>
+        </div>
+
+        <div id="Open" class="tabcontent">
+          <table class="table table-striped" id="open-Table">
+            <thead>
+              <tr>
+                <th hidden> ID </th>
+                <th id="co" onclick="sortOpenTable(1)"> Content </th>
+                <th id="ca" onclick="sortOpenTable(2)"> Category </th>
+                <th id="st" onclick="sortOpenTable(3)"> Status </th>
+                <th id="pr" onclick="sortOpenTable(4)"> Priority </th>
+                <th id="ow" onclick="sortOpenTable(5)"> Owner </th>
+                <th>  </th>
+              </tr>
+            </thead>
+            <tbody id="open-ticket-list"></tbody>
+
+          </table>
+        </div>
+
+        <div id="Closed" class="tabcontent">
+          <table class="table table-striped" id="close-Table">
+            <thead>
+              <tr>
+                <th hidden> ID </th>
+                <th id="co" onclick="sortCloseTable(1)"> Content </th>
+                <th id="ca" onclick="sortCloseTable(2)"> Category </th>
+                <th id="st" onclick="sortCloseTable(3)"> Status </th>
+                <th id="pr" onclick="sortCloseTable(4)"> Priority </th>
+                <th id="ow" onclick="sortCloseTable(5)"> Owner </th>
+                <th>  </th>
+              </tr>
+            </thead>
+            <tbody id="closed-ticket-list">
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="quickAddTitle"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- Form Content -->
+            <form>
+              <div class="form-group">
+                <label for="modal-task-name" class="col-2 col-form-label">Content:  </label>
+                <div class="col-4">
+                  <input class="form-control" type="text" value="" id="modal-task-name">
+                </div>
+              </div>
+              <!-- 分類 -->
+              <div class="form-group">
+                <label for="modal-category">Category:  </label>
+                <select class="form-control" id="modal-category">
+                  <option>9th floor</option>
+                  <option>yy architects</option>
+                  <option>Fong Yu Invest</option>
+                  <option>Tinichats</option>
+                </select>
+              </div>
+              <!-- 緊急 -->
+              <div class="form-group">
+                <label for="modal-priority">Priority:  </label>
+                <select class="form-control" id="modal-priority">
+                  <option>High</option>
+                  <option>Normal</option>
+                  <option>Low</option>
+                </select>
+              </div>
+              <!-- 說明 -->
+              <div class="form-group">
+                <label for="modal-description">Description:  </label>
+                <textarea class="form-control" id="modal-description" rows="3"></textarea>
+              </div>
+
+            </form>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="modal-submit">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal fade" id="viewModal" tabindex="-1" role="dialog" aria-labelledby="viewModalTitle" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewModalTitle"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+
+            <form>
+              <!-- 編號 -->
+              <div class="form-group">
+                <label for="task-name" class="col-2 col-form-label">ID:  </label>
+                <span id="view-id"></span>
+              </div>
+              <!-- 任務內容 -->
+              <div class="form-group">
+                <label for="task-name" class="col-2 col-form-label">Content:  </label>
+                <span id="view-name"></span>
+              </div>
+              <!-- 分類 -->
+              <div class="form-group">
+                <label for="category">Category:  </label>
+                <span id="view-cate"></span>
+              </div>
+              <!-- 狀態 -->
+              <div class="form-group">
+                <label for="status">Status:  </label>
+                <span id="view-stat"></span>
+              </div>
+              <!-- 緊急 -->
+              <div class="form-group">
+                <label for="priority">Priority:  </label>
+                <span id="view-prio"></span>
+              </div>
+              <!-- 負責人 -->
+              <div class="form-group">
+                <label for="owner" class="col-2 col-form-label">Owner:  </label>
+                <span id="view-owne"></span>
+              </div>
+              <!-- 說明 -->
+              <div class="form-group">
+                <label for="description">Description:  </label>
+                <span id="view-desc"></span>
+              </div>
+              <!-- 建立人 -->
+              <div class="form-group">
+                <label for="description">Initiator:  </label>
+                <span id="view-inir"></span>
+              </div>
+              <!-- 建立日期 -->
+              <div class="form-group">
+                <label for="description">Initiated Date:  </label>
+                <span id="view-inid"></span>
+              </div>
+              <!-- 修改人 -->
+              <div class="form-group">
+                <label for="description">Modifier:  </label>
+                <span id="view-modr"></span>
+              </div>
+              <!-- 修改日期 -->
+              <div class="form-group">
+                <label for="description">Modified Date:  </label>
+                <span id="view-modd"></span>
+              </div>
+              <!-- 子任務 -->
+              <div class="form-group">
+                <label for="subtasks">Tasks:  </label>
+                <br />
+                <ul id="view-subt"></ul>
+              </div>
+
+            </form>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalTitle"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+
+            <form>
+              <!-- 編號 -->
+              <div class="form-group">
+                <label for="task-name" class="col-2 col-form-label">ID</label>
+                <span id="edit-id"></span>
+              </div>
+              <!-- 任務內容 -->
+              <div class="form-group">
+                <label for="edit-task-name" class="col-2 col-form-label">Content:  </label>
+                <div class="col-4">
+                  <input class="form-control" type="text" value="" id="edit-task-name">
+                </div>
+              </div>
+              <!-- 分類 -->
+              <div class="form-group">
+                <label for="edit-category">Category:  </label>
+                <select class="form-control" id="edit-category">
+                  <option>9th floor</option>
+                  <option>yy architects</option>
+                  <option>Fong Yu Invest</option>
+                  <option>Tinichats</option>
+                </select>
+              </div>
+              <!-- 狀態 -->
+              <div class="form-group">
+                <label for="edit-status">Status:  </label>
+                <select class="form-control" id="edit-status">
+                  <option>Pending</option>
+                  <option>Progress</option>
+                  <option>Testing</option>
+                  <option>Solved</option>
+                  <option>Closed</option>
+                </select>
+              </div>
+              <!-- 緊急 -->
+              <div class="form-group">
+                <label for="edit-priority">Priority:  </label>
+                <select class="form-control" id="edit-priority">
+                  <option>High</option>
+                  <option>Normal</option>
+                  <option>Low</option>
+                </select>
+              </div>
+              <!-- 負責人 -->
+              <div class="form-group">
+                <label for="edit-owner" class="col-2 col-form-label">Owner:  </label>
+                <div class="col-4">
+                  <input class="form-control" type="text" value="" id="edit-owner">
+                </div>
+              </div>
+              <!-- 說明 -->
+              <div class="form-group">
+                <label for="edit-description">Description</label>
+                <textarea class="form-control" id="edit-description" rows="3"></textarea>
+              </div>
+
+              <!-- 建立人 -->
+              <div class="form-group">
+                <label for="edit-inir" class="col-2 col-form-label">Initiator:  </label>
+                <span id="edit-inir"></span>
+              </div>
+              <!-- 建立日期 -->
+              <div class="form-group">
+                <label for="edit-inid" class="col-2 col-form-label">Initiated Date:  </label>
+                <span id="edit-inid"></span>
+              </div>
+              <!-- 子任務 -->
+              <div class="form-group">
+                <label for="edit-subt" class="col-2 col-form-label">Tasks:  </label>
+                <div class="input-group">
+                  <input type="text" class="form-control" placeholder="" id="sub-input">
+                  <span class="input-group-btn">
+                    <button class="btn btn-secondary" type="button" id="add-sub">Add</button>
+                  </span>
+                </div>
+                <br />
+                <ul id="edit-subt">
+                </ul>
+              </div>
+              <br />
+            </form>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="edit-submit">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js'></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
+    <script src="javascripts/firebaseConfig.js"></script>
+    <script src="javascripts/ticket.js"></script>
+    <script src="javascripts/sb-admin-2.js"></script>
+  </body>
+</html>
