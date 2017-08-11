@@ -23,9 +23,15 @@ firebase.initializeApp(config);
 
 const usersRef = firebase.database().ref().child('chats/users');
 const agentsRef = firebase.database().ref().child('chats/agents');
-
+const newDBRef = firebase.database().ref().child('chats/Data');
 const auth = firebase.auth();
 // console.log(auth.app);
+var chatData;
+newDBRef.on('value', snapshot=> {
+   chatData = snapshot.val();
+   console.log("chat data loading complete!");
+  // ...
+});
 
 /**
  * Get port from environment and store in Express.
@@ -85,7 +91,11 @@ var w;
 var w1;
 var w2;
 var n;
-
+//抓日期
+var Today = new Date();
+var YY = Today.getFullYear();
+var MM = (Today.getMonth()+1);
+var DD = Today.getDate();
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -96,17 +106,120 @@ server.on('listening', onListening);
 
 // 接收訊息
 // LINE bot implement
+//LINE bot postback
+// bot.on('postback', event =>{
+//   console.log(event);
+//       // if (event.message.type === 'text' && message_lineTochat.trim() === '預約確認') {
+//       //   let booking = '您的預約是XXXX-XX-XX，詳情如下:XX:XX-XX:XX';
+//       //   io.sockets.emit('new message', {
+//       //       msg: booking,
+//       //       name: receiverId
+//       //   });
+//       var Rdate = event.postback.data;
+//         console.log(Rdate);
+//         event.reply({
+//        "type": "template",
+//        "altText": "this is a confirm template",
+//        "template": {
+//            "type": "confirm",
+//            "text": '您預約面試的時間\n'+Rdate,//postback資料
+//            "actions": [
+//                {
+//                  "type": "message",
+//                  "label": "確認",
+//                  "text": "預約確認"
+//                },
+//                {
+//                  "type": "message",
+//                  "label": "取消",
+//                  "text": "預約取消"
+//                }
+//            ]
+//        }
+//      })
+//       // }
+//
+// }
+// )
+
 bot.on('message', event => {
-    // console.log(event);
-    let d = Date.now();
-    let date = new Date(d);
+    console.log(event);
+    let d = Date.now();//日期
+    let date = new Date(d);//日期
     let message_type = event.message.type;
     let address = event.message.address;
     let latitude = event.message.latitude;
     let longitude = event.message.longitude;
-    message_lineTochat = event.message.text;
-    receiverId = event.source.userId;
+    let message_lineTochat = event.message.text;
+    let receiverId = event.source.userId;
+    let receiver_name;
+
     // console.log(receiverId);
+    var msgObj = {
+      owner: "user",
+      name: receiver_name,
+      time: d
+    };
+    function emitIO_and_pushDB(obj) {
+      // console.log("sending to io sockets...");
+      // io.sockets.emit('new message', obj);
+      // console.log("io sockets sent!");
+      // console.log("sending to old firebase database...");
+      // usersRef.push(obj);
+      // console.log("DB sent!");
+
+      console.log("sending object user: ");
+      console.log(obj);
+      // console.log("sending to local DB");
+      // sendToLocalDB(obj);
+      console.log("sending to new firebase database");
+      sendToNewFb(obj);
+      console.log("sending to new io sockets...");
+      sendToFrontSocket(obj);
+      console.log("All sent!");
+    }
+    function sendToFrontSocket(obj) {
+      obj.id = receiverId;
+      io.sockets.emit('new message2', obj);
+    }
+    function sendToNewFb(obj){
+      let flag = true;
+      for( let prop in chatData ) {
+        if(chatData[prop].Profile.userId == receiverId) {
+          console.log("find user " + receiverId + " in database");
+          let length = chatData[prop].Messages.length;
+          let updateObj = {};
+          updateObj['/'+prop+'/Messages/'+length] = obj;
+          newDBRef.update(updateObj);
+          newDBRef.child(prop).child("Profile").update({
+            unRead: true,
+            photo: profile.pictureUrl
+          });
+          flag = false;
+          break;
+        }
+      }
+      if( flag ) {
+        console.log("new user come in");
+        let newData = {
+          Profile: {
+            nickname: receiver_name,
+            userId: receiverId,
+            age: -1,
+            telephone: "",
+            address: "",
+            firstChat: d,
+            recentChat: d,
+            totalChat: 1,
+            avgChat: 1,
+            unRead: true
+          },
+          Messages: [obj]
+        };
+        newDBRef.push(newData);
+      }
+    }
+
     // from wenyen
     //  ===================  KINDS ====================
     if (message_type === 'sticker') {
@@ -128,11 +241,11 @@ bot.on('message', event => {
             msg: address,
             name: receiverId
         });
-        // 定位系統(餐廳搜尋)
+        // ↓定位系統(餐廳搜尋)
         setTimeout(() => {
           const yelp_client = yelp.client(yelp_token);
           yelp_client.search({
-            term:'restaurants',//餐廳種類
+            term:'food',//餐廳種類
             locale:'zh_TW', //語系
             location: address,
           }).then(response => {
@@ -161,7 +274,7 @@ bot.on('message', event => {
             "columns": [{
               "thumbnailImageUrl": x,
                 "title": z,
-                "text": y[0]+y[1],
+                "text": y[0]+y[1],//抓陣列中所需要的值作為字串(因為這裡陣列會無法顯示)
                 "actions": [{
                   "type": 'uri',
                   "label": '觀看餐廳資訊',
@@ -198,7 +311,7 @@ bot.on('message', event => {
             console.log(e);
           });
       }, 2000);
-
+      // ↑定位系統(餐廳搜尋)
         event.message.content().then(function(content) {
             /*'base64'是圖片的編碼*/
             console.log(content);
@@ -315,7 +428,7 @@ bot.on('message', event => {
             "actions": [{
               "type": "message",
                 "label": 'Free方案',
-                "text": "Free方案"
+                "text": "Free方案",
             },{
               "type": "message",
                 "label": 'Night方案',
@@ -495,8 +608,8 @@ bot.on('message', event => {
                          "text": "餐廳DEMO"
                      },{
                        "type": "message",
-                         "label": ' ',
-                         "text": " "
+                         "label": '預約DEMO',
+                         "text": "預約DEMO"
                      },{
                        "type": "message",
                          "label": ' ',
@@ -506,6 +619,1396 @@ bot.on('message', event => {
                  }
                })
              }
+/*----------------------------------------------------主選單------------------------------------------------------------*/
+              //↓預約功能
+             else if(event.message.type === 'text' && message_lineTochat.trim() === '預約DEMO') {
+                          io.sockets.emit('new message', {
+                              msg: '已接收顯示預約日期',
+                              name: receiverId,
+                          });
+                          event.reply({
+                              "type": "template",
+                              "altText": "Welcome Template",
+                              "template": {
+                                type: 'carousel',
+                          "columns": [{
+                              "title": '預約日期',
+                              "text": MM + " 月 " + (DD+1) + " 日"+'~'+MM + " 月 " + (DD+3) +'日',
+                              "actions": [{
+                                "type": "message",
+                                  "label": YY+ " 年 " + MM + " 月 " + (DD+1) + " 日",
+                                  "text": YY+ " 年 " + MM + " 月 " + (DD+1) + " 日"
+                              },{
+                                "type": "message",
+                                  "label": YY+ " 年 " + MM + " 月 " + (DD+2) + " 日",
+                                  "text": YY+ " 年 " + MM + " 月 " + (DD+2) + " 日"
+                              },{
+                                "type": "message",
+                                  "label": YY+ " 年 " + MM + " 月 " + (DD+3) + " 日",
+                                  "text": YY+ " 年 " + MM + " 月 " + (DD+3) + " 日"
+                              }]
+                          },{
+                              "title": '預約日期',
+                              "text": MM + " 月 " + (DD+4) + " 日"+'~'+MM + " 月 " + (DD+6) +'日',
+                              "actions": [{
+                                "type": "message",
+                                  "label": YY+ " 年 " + MM + " 月 " + (DD+4) + " 日",
+                                  "text": YY+ " 年 " + MM + " 月 " + (DD+4) + " 日"
+                              },{
+                                "type": "message",
+                                  "label": YY+ " 年 " + MM + " 月 " + (DD+5) + " 日",
+                                  "text": YY+ " 年 " + MM + " 月 " + (DD+5) + " 日"
+                              },{
+                                "type": "message",
+                                  "label": YY+ " 年 " + MM + " 月 " + (DD+6) + " 日",
+                                  "text": YY+ " 年 " + MM + " 月 " + (DD+6) + " 日"
+                              }]
+                          },{
+                              "title": '預約日期',
+                              "text": MM + " 月 " + (DD+7) + " 日"+'~'+MM + " 月 " + (DD+9) +'日',
+                              "actions": [{
+                                "type": "message",
+                                  "label": YY+ " 年 " + MM + " 月 " + (DD+7) + " 日",
+                                  "text": YY+ " 年 " + MM + " 月 " + (DD+7) + " 日"
+                              },{
+                                "type": "message",
+                                  "label": YY+ " 年 " + MM + " 月 " + (DD+8) + " 日",
+                                  "text": YY+ " 年 " + MM + " 月 " + (DD+8) + " 日"
+                              },{
+                                "type": "message",
+                                  "label": YY+ " 年 " + MM + " 月 " + (DD+9) + " 日",
+                                  "text": YY+ " 年 " + MM + " 月 " + (DD+9) + " 日"
+                              }]
+                          }]
+                          }
+                        })
+                      }
+
+/*----------------------------------------------------預約分類------------------------------------------------------------*/
+          //DD+1
+          else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+1) + " 日") {
+                 io.sockets.emit('new message', {
+                     msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+1) + " 日",
+                     name: receiverId
+                 });
+                 event.reply({
+                     "type": "template",
+                     "altText": "Welcome Template",
+                     "template": {
+                       type: 'carousel',
+                 "columns": [{
+                     "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+1) + " 日",
+                     "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                     "actions": [{
+                       "type": "message",
+                         "label": '10:00-11:00',
+                         "text": MM+'月'+(DD+1)+'日'+"10:00~11:00"
+                     },{
+                       "type": "message",
+                         "label": '11:00-12:00',
+                         "text": MM+'月'+(DD+1)+'日'+"11:00-12:00"
+                     }]
+                 },{
+                     "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+1) + " 日",
+                     "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                     "actions": [{
+                       "type": "message",
+                         "label": '15:00-16:00',
+                         "text": MM+'月'+(DD+1)+'日'+"15:00-16:00"
+                     },{
+                       "type": "message",
+                         "label": '16:00-17:00',
+                         "text": MM+'月'+(DD+1)+'日'+"16:00-17:00"
+                     }]
+                 }]
+                 }
+               });
+             }
+             else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+1)+'日'+"10:00~11:00") {
+               var Rdate = event.message.text;
+               // console.log(receiverId);
+               // console.log(Rdate);
+               // console.log(chatData);
+               // console.log(receiverId)
+               for( let i in chatData ) {
+                 // console.log(chatData[i].Profile.Reservation == Rdate);
+               if (chatData[i].Profile.Reservation == Rdate){
+                 let reservation_YES = ('預約已滿');
+                     event.reply({
+                          type: 'text',
+                          text: reservation_YES
+                      });
+                      break;
+                    } else {
+                     if (chatData[i].Profile.userId == receiverId){
+                    newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                    let reservation_YES = ('預約成功');
+                    event.reply({
+                         type: 'text',
+                         text: reservation_YES
+                     });
+                    }
+                    }
+                }
+              }
+              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+1)+'日'+"11:00-12:00") {
+              var Rdate = event.message.text;
+              // console.log(receiverId);
+              // console.log(Rdate);
+              // console.log(chatData);
+              // console.log(receiverId)
+              for( let i in chatData ) {
+              // console.log(chatData[i].Profile.Reservation == Rdate);
+              if (chatData[i].Profile.Reservation == Rdate){
+              let reservation_YES = ('預約已滿');
+              event.reply({
+                   type: 'text',
+                   text: reservation_YES
+               });
+               break;
+              } else {
+               if (chatData[i].Profile.userId == receiverId){
+              newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+              let reservation_YES = ('預約成功');
+              event.reply({
+                   type: 'text',
+                   text: reservation_YES
+               });
+              }
+              }
+              }
+              }
+              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+1)+'日'+"15:00-16:00") {
+              var Rdate = event.message.text;
+              // console.log(receiverId);
+              // console.log(Rdate);
+              // console.log(chatData);
+              // console.log(receiverId)
+              for( let i in chatData ) {
+              // console.log(chatData[i].Profile.Reservation == Rdate);
+              if (chatData[i].Profile.Reservation == Rdate){
+              let reservation_YES = ('預約已滿');
+              event.reply({
+                   type: 'text',
+                   text: reservation_YES
+               });
+               break;
+              } else {
+               if (chatData[i].Profile.userId == receiverId){
+              newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+              let reservation_YES = ('預約成功');
+              event.reply({
+                   type: 'text',
+                   text: reservation_YES
+               });
+              }
+              }
+              }
+              }
+              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+1)+'日'+"16:00-17:00") {
+              var Rdate = event.message.text;
+              // console.log(receiverId);
+              // console.log(Rdate);
+              // console.log(chatData);
+              // console.log(receiverId)
+              for( let i in chatData ) {
+              // console.log(chatData[i].Profile.Reservation == Rdate);
+              if (chatData[i].Profile.Reservation == Rdate){
+              let reservation_YES = ('預約已滿');
+              event.reply({
+                   type: 'text',
+                   text: reservation_YES
+               });
+               break;
+              } else {
+               if (chatData[i].Profile.userId == receiverId){
+              newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+              let reservation_YES = ('預約成功');
+              event.reply({
+                   type: 'text',
+                   text: reservation_YES
+               });
+              }
+              }
+              }
+              }
+              //DD+2
+             else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+2) + " 日") {
+                     io.sockets.emit('new message', {
+                         msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+2) + " 日",
+                         name: receiverId
+                     });
+                     event.reply({
+                         "type": "template",
+                         "altText": "Welcome Template",
+                         "template": {
+                           type: 'carousel',
+                     "columns": [{
+                         "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+2) + " 日",
+                         "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                         "actions": [{
+                           "type": "message",
+                             "label": '10:00-11:00',
+                             "text": MM+'月'+(DD+2)+'日'+"10:00~11:00"
+                         },{
+                           "type": "message",
+                             "label": '11:00-12:00',
+                             "text": MM+'月'+(DD+2)+'日'+"11:00-12:00"
+                         }]
+                     },{
+                         "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+2) + " 日",
+                         "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                         "actions": [{
+                           "type": "message",
+                             "label": '15:00-16:00',
+                             "text": MM+'月'+(DD+2)+'日'+"15:00-16:00"
+                         },{
+                           "type": "message",
+                             "label": '16:00-17:00',
+                             "text": MM+'月'+(DD+2)+'日'+"16:00-17:00"
+                         }]
+                     }]
+                     }
+                   });
+                 }
+                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+2)+'日'+"10:00~11:00") {
+                   var Rdate = event.message.text;
+                   // console.log(receiverId);
+                   // console.log(Rdate);
+                   // console.log(chatData);
+                   // console.log(receiverId)
+                   for( let i in chatData ) {
+                     // console.log(chatData[i].Profile.Reservation == Rdate);
+                   if (chatData[i].Profile.Reservation == Rdate){
+                     let reservation_YES = ('預約已滿');
+                         event.reply({
+                              type: 'text',
+                              text: reservation_YES
+                          });
+                          break;
+                        } else {
+                         if (chatData[i].Profile.userId == receiverId){
+                        newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                        let reservation_YES = ('預約成功');
+                        event.reply({
+                             type: 'text',
+                             text: reservation_YES
+                         });
+                        }
+                        }
+                    }
+                  }
+                  else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+2)+'日'+"11:00-12:00") {
+                  var Rdate = event.message.text;
+                  // console.log(receiverId);
+                  // console.log(Rdate);
+                  // console.log(chatData);
+                  // console.log(receiverId)
+                  for( let i in chatData ) {
+                  // console.log(chatData[i].Profile.Reservation == Rdate);
+                  if (chatData[i].Profile.Reservation == Rdate){
+                  let reservation_YES = ('預約已滿');
+                  event.reply({
+                       type: 'text',
+                       text: reservation_YES
+                   });
+                   break;
+                  } else {
+                   if (chatData[i].Profile.userId == receiverId){
+                  newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                  let reservation_YES = ('預約成功');
+                  event.reply({
+                       type: 'text',
+                       text: reservation_YES
+                   });
+                  }
+                  }
+                  }
+                  }
+                  else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+2)+'日'+"15:00-16:00") {
+                  var Rdate = event.message.text;
+                  // console.log(receiverId);
+                  // console.log(Rdate);
+                  // console.log(chatData);
+                  // console.log(receiverId)
+                  for( let i in chatData ) {
+                  // console.log(chatData[i].Profile.Reservation == Rdate);
+                  if (chatData[i].Profile.Reservation == Rdate){
+                  let reservation_YES = ('預約已滿');
+                  event.reply({
+                       type: 'text',
+                       text: reservation_YES
+                   });
+                   break;
+                  } else {
+                   if (chatData[i].Profile.userId == receiverId){
+                  newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                  let reservation_YES = ('預約成功');
+                  event.reply({
+                       type: 'text',
+                       text: reservation_YES
+                   });
+                  }
+                  }
+                  }
+                  }
+                  else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+2)+'日'+"16:00-17:00") {
+                  var Rdate = event.message.text;
+                  // console.log(receiverId);
+                  // console.log(Rdate);
+                  // console.log(chatData);
+                  // console.log(receiverId)
+                  for( let i in chatData ) {
+                  // console.log(chatData[i].Profile.Reservation == Rdate);
+                  if (chatData[i].Profile.Reservation == Rdate){
+                  let reservation_YES = ('預約已滿');
+                  event.reply({
+                       type: 'text',
+                       text: reservation_YES
+                   });
+                   break;
+                  } else {
+                   if (chatData[i].Profile.userId == receiverId){
+                  newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                  let reservation_YES = ('預約成功');
+                  event.reply({
+                       type: 'text',
+                       text: reservation_YES
+                   });
+                  }
+                  }
+                  }
+                  }
+                 //DD+3
+                else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+3) + " 日") {
+                        io.sockets.emit('new message', {
+                            msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+3) + " 日",
+                            name: receiverId
+                        });
+                        event.reply({
+                            "type": "template",
+                            "altText": "Welcome Template",
+                            "template": {
+                              type: 'carousel',
+                        "columns": [{
+                            "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+3) + " 日",
+                            "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                            "actions": [{
+                              "type": "message",
+                                "label": '10:00-11:00',
+                                "text": MM+'月'+(DD+3)+'日'+"10:00~11:00"
+                            },{
+                              "type": "message",
+                                "label": '11:00-12:00',
+                                "text": MM+'月'+(DD+3)+'日'+"11:00-12:00"
+                            }]
+                        },{
+                            "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+3) + " 日",
+                            "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                            "actions": [{
+                              "type": "message",
+                                "label": '15:00-16:00',
+                                "text": MM+'月'+(DD+3)+'日'+"15:00-16:00"
+                            },{
+                              "type": "message",
+                                "label": '16:00-17:00',
+                                "text": MM+'月'+(DD+3)+'日'+"16:00-17:00"
+                            }]
+                        }]
+                        }
+                      });
+                    }
+                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+3)+'日'+"10:00~11:00") {
+                      var Rdate = event.message.text;
+                      // console.log(receiverId);
+                      // console.log(Rdate);
+                      // console.log(chatData);
+                      // console.log(receiverId)
+                      for( let i in chatData ) {
+                        // console.log(chatData[i].Profile.Reservation == Rdate);
+                      if (chatData[i].Profile.Reservation == Rdate){
+                        let reservation_YES = ('預約已滿');
+                            event.reply({
+                                 type: 'text',
+                                 text: reservation_YES
+                             });
+                             break;
+                           } else {
+                            if (chatData[i].Profile.userId == receiverId){
+                           newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                           let reservation_YES = ('預約成功');
+                           event.reply({
+                                type: 'text',
+                                text: reservation_YES
+                            });
+                           }
+                           }
+                       }
+                     }
+                     else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+3)+'日'+"11:00-12:00") {
+                     var Rdate = event.message.text;
+                     // console.log(receiverId);
+                     // console.log(Rdate);
+                     // console.log(chatData);
+                     // console.log(receiverId)
+                     for( let i in chatData ) {
+                     // console.log(chatData[i].Profile.Reservation == Rdate);
+                     if (chatData[i].Profile.Reservation == Rdate){
+                     let reservation_YES = ('預約已滿');
+                     event.reply({
+                          type: 'text',
+                          text: reservation_YES
+                      });
+                      break;
+                     } else {
+                      if (chatData[i].Profile.userId == receiverId){
+                     newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                     let reservation_YES = ('預約成功');
+                     event.reply({
+                          type: 'text',
+                          text: reservation_YES
+                      });
+                     }
+                     }
+                     }
+                     }
+                     else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+3)+'日'+"15:00-16:00") {
+                     var Rdate = event.message.text;
+                     // console.log(receiverId);
+                     // console.log(Rdate);
+                     // console.log(chatData);
+                     // console.log(receiverId)
+                     for( let i in chatData ) {
+                     // console.log(chatData[i].Profile.Reservation == Rdate);
+                     if (chatData[i].Profile.Reservation == Rdate){
+                     let reservation_YES = ('預約已滿');
+                     event.reply({
+                          type: 'text',
+                          text: reservation_YES
+                      });
+                      break;
+                     } else {
+                      if (chatData[i].Profile.userId == receiverId){
+                     newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                     let reservation_YES = ('預約成功');
+                     event.reply({
+                          type: 'text',
+                          text: reservation_YES
+                      });
+                     }
+                     }
+                     }
+                     }
+                     else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+3)+'日'+"16:00-17:00") {
+                     var Rdate = event.message.text;
+                     // console.log(receiverId);
+                     // console.log(Rdate);
+                     // console.log(chatData);
+                     // console.log(receiverId)
+                     for( let i in chatData ) {
+                     // console.log(chatData[i].Profile.Reservation == Rdate);
+                     if (chatData[i].Profile.Reservation == Rdate){
+                     let reservation_YES = ('預約已滿');
+                     event.reply({
+                          type: 'text',
+                          text: reservation_YES
+                      });
+                      break;
+                     } else {
+                      if (chatData[i].Profile.userId == receiverId){
+                     newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                     let reservation_YES = ('預約成功');
+                     event.reply({
+                          type: 'text',
+                          text: reservation_YES
+                      });
+                     }
+                     }
+                     }
+                     }
+                    //DD+4
+                   else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+4) + " 日") {
+                           io.sockets.emit('new message', {
+                               msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+4) + " 日",
+                               name: receiverId
+                           });
+                           event.reply({
+                               "type": "template",
+                               "altText": "Welcome Template",
+                               "template": {
+                                 type: 'carousel',
+                           "columns": [{
+                               "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+4) + " 日",
+                               "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                               "actions": [{
+                                 "type": "message",
+                                   "label": '10:00-11:00',
+                                   "text": MM+'月'+(DD+4)+'日'+"10:00~11:00"
+                               },{
+                                 "type": "message",
+                                   "label": '11:00-12:00',
+                                   "text": MM+'月'+(DD+4)+'日'+"11:00-12:00"
+                               }]
+                           },{
+                               "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+4) + " 日",
+                               "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                               "actions": [{
+                                 "type": "message",
+                                   "label": '15:00-16:00',
+                                   "text": MM+'月'+(DD+4)+'日'+"15:00-16:00"
+                               },{
+                                 "type": "message",
+                                   "label": '16:00-17:00',
+                                   "text": MM+'月'+(DD+4)+'日'+"16:00-17:00"
+                               }]
+                           }]
+                           }
+                         });
+                       }
+                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+4)+'日'+"10:00~11:00") {
+                         var Rdate = event.message.text;
+                         // console.log(receiverId);
+                         // console.log(Rdate);
+                         // console.log(chatData);
+                         // console.log(receiverId)
+                         for( let i in chatData ) {
+                           // console.log(chatData[i].Profile.Reservation == Rdate);
+                         if (chatData[i].Profile.Reservation == Rdate){
+                           let reservation_YES = ('預約已滿');
+                               event.reply({
+                                    type: 'text',
+                                    text: reservation_YES
+                                });
+                                break;
+                              } else {
+                               if (chatData[i].Profile.userId == receiverId){
+                              newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                              let reservation_YES = ('預約成功');
+                              event.reply({
+                                   type: 'text',
+                                   text: reservation_YES
+                               });
+                              }
+                              }
+                          }
+                        }
+                        else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+4)+'日'+"11:00-12:00") {
+                        var Rdate = event.message.text;
+                        // console.log(receiverId);
+                        // console.log(Rdate);
+                        // console.log(chatData);
+                        // console.log(receiverId)
+                        for( let i in chatData ) {
+                        // console.log(chatData[i].Profile.Reservation == Rdate);
+                        if (chatData[i].Profile.Reservation == Rdate){
+                        let reservation_YES = ('預約已滿');
+                        event.reply({
+                             type: 'text',
+                             text: reservation_YES
+                         });
+                         break;
+                        } else {
+                         if (chatData[i].Profile.userId == receiverId){
+                        newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                        let reservation_YES = ('預約成功');
+                        event.reply({
+                             type: 'text',
+                             text: reservation_YES
+                         });
+                        }
+                        }
+                        }
+                        }
+                        else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+4)+'日'+"15:00-16:00") {
+                        var Rdate = event.message.text;
+                        // console.log(receiverId);
+                        // console.log(Rdate);
+                        // console.log(chatData);
+                        // console.log(receiverId)
+                        for( let i in chatData ) {
+                        // console.log(chatData[i].Profile.Reservation == Rdate);
+                        if (chatData[i].Profile.Reservation == Rdate){
+                        let reservation_YES = ('預約已滿');
+                        event.reply({
+                             type: 'text',
+                             text: reservation_YES
+                         });
+                         break;
+                        } else {
+                         if (chatData[i].Profile.userId == receiverId){
+                        newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                        let reservation_YES = ('預約成功');
+                        event.reply({
+                             type: 'text',
+                             text: reservation_YES
+                         });
+                        }
+                        }
+                        }
+                        }
+                        else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+4)+'日'+"16:00-17:00") {
+                        var Rdate = event.message.text;
+                        // console.log(receiverId);
+                        // console.log(Rdate);
+                        // console.log(chatData);
+                        // console.log(receiverId)
+                        for( let i in chatData ) {
+                        // console.log(chatData[i].Profile.Reservation == Rdate);
+                        if (chatData[i].Profile.Reservation == Rdate){
+                        let reservation_YES = ('預約已滿');
+                        event.reply({
+                             type: 'text',
+                             text: reservation_YES
+                         });
+                         break;
+                        } else {
+                         if (chatData[i].Profile.userId == receiverId){
+                        newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                        let reservation_YES = ('預約成功');
+                        event.reply({
+                             type: 'text',
+                             text: reservation_YES
+                         });
+                        }
+                        }
+                        }
+                        }
+                       //DD+5
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+5) + " 日") {
+                              io.sockets.emit('new message', {
+                                  msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+5) + " 日",
+                                  name: receiverId
+                              });
+                              event.reply({
+                                  "type": "template",
+                                  "altText": "Welcome Template",
+                                  "template": {
+                                    type: 'carousel',
+                              "columns": [{
+                                  "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+5) + " 日",
+                                  "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                                  "actions": [{
+                                    "type": "message",
+                                      "label": '10:00-11:00',
+                                      "text": MM+'月'+(DD+5)+'日'+"10:00~11:00"
+                                  },{
+                                    "type": "message",
+                                      "label": '11:00-12:00',
+                                      "text": MM+'月'+(DD+5)+'日'+"11:00-12:00"
+                                  }]
+                              },{
+                                  "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+5) + " 日",
+                                  "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                                  "actions": [{
+                                    "type": "message",
+                                      "label": '15:00-16:00',
+                                      "text": MM+'月'+(DD+5)+'日'+"15:00-16:00"
+                                  },{
+                                    "type": "message",
+                                      "label": '16:00-17:00',
+                                      "text": MM+'月'+(DD+5)+'日'+"16:00-17:00"
+                                  }]
+                              }]
+                              }
+                            });
+                          }
+                          else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+5)+'日'+"10:00~11:00") {
+                            var Rdate = event.message.text;
+                            // console.log(receiverId);
+                            // console.log(Rdate);
+                            // console.log(chatData);
+                            // console.log(receiverId)
+                            for( let i in chatData ) {
+                              // console.log(chatData[i].Profile.Reservation == Rdate);
+                            if (chatData[i].Profile.Reservation == Rdate){
+                              let reservation_YES = ('預約已滿');
+                                  event.reply({
+                                       type: 'text',
+                                       text: reservation_YES
+                                   });
+                                   break;
+                                 } else {
+                                  if (chatData[i].Profile.userId == receiverId){
+                                 newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                 let reservation_YES = ('預約成功');
+                                 event.reply({
+                                      type: 'text',
+                                      text: reservation_YES
+                                  });
+                                 }
+                                 }
+                             }
+                           }
+                           else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+5)+'日'+"11:00-12:00") {
+                           var Rdate = event.message.text;
+                           // console.log(receiverId);
+                           // console.log(Rdate);
+                           // console.log(chatData);
+                           // console.log(receiverId)
+                           for( let i in chatData ) {
+                           // console.log(chatData[i].Profile.Reservation == Rdate);
+                           if (chatData[i].Profile.Reservation == Rdate){
+                           let reservation_YES = ('預約已滿');
+                           event.reply({
+                                type: 'text',
+                                text: reservation_YES
+                            });
+                            break;
+                           } else {
+                            if (chatData[i].Profile.userId == receiverId){
+                           newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                           let reservation_YES = ('預約成功');
+                           event.reply({
+                                type: 'text',
+                                text: reservation_YES
+                            });
+                           }
+                           }
+                           }
+                           }
+                           else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+5)+'日'+"15:00-16:00") {
+                           var Rdate = event.message.text;
+                           // console.log(receiverId);
+                           // console.log(Rdate);
+                           // console.log(chatData);
+                           // console.log(receiverId)
+                           for( let i in chatData ) {
+                           // console.log(chatData[i].Profile.Reservation == Rdate);
+                           if (chatData[i].Profile.Reservation == Rdate){
+                           let reservation_YES = ('預約已滿');
+                           event.reply({
+                                type: 'text',
+                                text: reservation_YES
+                            });
+                            break;
+                           } else {
+                            if (chatData[i].Profile.userId == receiverId){
+                           newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                           let reservation_YES = ('預約成功');
+                           event.reply({
+                                type: 'text',
+                                text: reservation_YES
+                            });
+                           }
+                           }
+                           }
+                           }
+                           else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+5)+'日'+"16:00-17:00") {
+                           var Rdate = event.message.text;
+                           // console.log(receiverId);
+                           // console.log(Rdate);
+                           // console.log(chatData);
+                           // console.log(receiverId)
+                           for( let i in chatData ) {
+                           // console.log(chatData[i].Profile.Reservation == Rdate);
+                           if (chatData[i].Profile.Reservation == Rdate){
+                           let reservation_YES = ('預約已滿');
+                           event.reply({
+                                type: 'text',
+                                text: reservation_YES
+                            });
+                            break;
+                           } else {
+                            if (chatData[i].Profile.userId == receiverId){
+                           newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                           let reservation_YES = ('預約成功');
+                           event.reply({
+                                type: 'text',
+                                text: reservation_YES
+                            });
+                           }
+                           }
+                           }
+                           }
+                          //DD+6
+                         else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+6) + " 日") {
+                                 io.sockets.emit('new message', {
+                                     msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+6) + " 日",
+                                     name: receiverId
+                                 });
+                                 event.reply({
+                                     "type": "template",
+                                     "altText": "Welcome Template",
+                                     "template": {
+                                       type: 'carousel',
+                                 "columns": [{
+                                     "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+6) + " 日",
+                                     "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                                     "actions": [{
+                                       "type": "message",
+                                         "label": '10:00-11:00',
+                                         "text": MM+'月'+(DD+6)+'日'+"10:00~11:00"
+                                     },{
+                                       "type": "message",
+                                         "label": '11:00-12:00',
+                                         "text": MM+'月'+(DD+6)+'日'+"11:00-12:00"
+                                     }]
+                                 },{
+                                     "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+6) + " 日",
+                                     "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                                     "actions": [{
+                                       "type": "message",
+                                         "label": '15:00-16:00',
+                                         "text": MM+'月'+(DD+6)+'日'+"15:00-16:00"
+                                     },{
+                                       "type": "message",
+                                         "label": '16:00-17:00',
+                                         "text": MM+'月'+(DD+6)+'日'+"16:00-17:00"
+                                     }]
+                                 }]
+                                 }
+                               });
+                             }
+                             else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+6)+'日'+"10:00~11:00") {
+                               var Rdate = event.message.text;
+                               // console.log(receiverId);
+                               // console.log(Rdate);
+                               // console.log(chatData);
+                               // console.log(receiverId)
+                               for( let i in chatData ) {
+                                 // console.log(chatData[i].Profile.Reservation == Rdate);
+                               if (chatData[i].Profile.Reservation == Rdate){
+                                 let reservation_YES = ('預約已滿');
+                                     event.reply({
+                                          type: 'text',
+                                          text: reservation_YES
+                                      });
+                                      break;
+                                    } else {
+                                     if (chatData[i].Profile.userId == receiverId){
+                                    newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                    let reservation_YES = ('預約成功');
+                                    event.reply({
+                                         type: 'text',
+                                         text: reservation_YES
+                                     });
+                                    }
+                                    }
+                                }
+                              }
+                              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+6)+'日'+"11:00-12:00") {
+                              var Rdate = event.message.text;
+                              // console.log(receiverId);
+                              // console.log(Rdate);
+                              // console.log(chatData);
+                              // console.log(receiverId)
+                              for( let i in chatData ) {
+                              // console.log(chatData[i].Profile.Reservation == Rdate);
+                              if (chatData[i].Profile.Reservation == Rdate){
+                              let reservation_YES = ('預約已滿');
+                              event.reply({
+                                   type: 'text',
+                                   text: reservation_YES
+                               });
+                               break;
+                              } else {
+                               if (chatData[i].Profile.userId == receiverId){
+                              newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                              let reservation_YES = ('預約成功');
+                              event.reply({
+                                   type: 'text',
+                                   text: reservation_YES
+                               });
+                              }
+                              }
+                              }
+                              }
+                              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+6)+'日'+"15:00-16:00") {
+                              var Rdate = event.message.text;
+                              // console.log(receiverId);
+                              // console.log(Rdate);
+                              // console.log(chatData);
+                              // console.log(receiverId)
+                              for( let i in chatData ) {
+                              // console.log(chatData[i].Profile.Reservation == Rdate);
+                              if (chatData[i].Profile.Reservation == Rdate){
+                              let reservation_YES = ('預約已滿');
+                              event.reply({
+                                   type: 'text',
+                                   text: reservation_YES
+                               });
+                               break;
+                              } else {
+                               if (chatData[i].Profile.userId == receiverId){
+                              newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                              let reservation_YES = ('預約成功');
+                              event.reply({
+                                   type: 'text',
+                                   text: reservation_YES
+                               });
+                              }
+                              }
+                              }
+                              }
+                              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+6)+'日'+"16:00-17:00") {
+                              var Rdate = event.message.text;
+                              // console.log(receiverId);
+                              // console.log(Rdate);
+                              // console.log(chatData);
+                              // console.log(receiverId)
+                              for( let i in chatData ) {
+                              // console.log(chatData[i].Profile.Reservation == Rdate);
+                              if (chatData[i].Profile.Reservation == Rdate){
+                              let reservation_YES = ('預約已滿');
+                              event.reply({
+                                   type: 'text',
+                                   text: reservation_YES
+                               });
+                               break;
+                              } else {
+                               if (chatData[i].Profile.userId == receiverId){
+                              newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                              let reservation_YES = ('預約成功');
+                              event.reply({
+                                   type: 'text',
+                                   text: reservation_YES
+                               });
+                              }
+                              }
+                              }
+                              }
+                             //DD+7
+                            else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+7) + " 日") {
+                                    io.sockets.emit('new message', {
+                                        msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+7) + " 日",
+                                        name: receiverId
+                                    });
+                                    event.reply({
+                                        "type": "template",
+                                        "altText": "Welcome Template",
+                                        "template": {
+                                          type: 'carousel',
+                                    "columns": [{
+                                        "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+7) + " 日",
+                                        "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                                        "actions": [{
+                                          "type": "message",
+                                            "label": '10:00-11:00',
+                                            "text": MM+'月'+(DD+7)+'日'+"10:00~11:00"
+                                        },{
+                                          "type": "message",
+                                            "label": '11:00-12:00',
+                                            "text": MM+'月'+(DD+7)+'日'+"11:00-12:00"
+                                        }]
+                                    },{
+                                        "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+7) + " 日",
+                                        "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                                        "actions": [{
+                                          "type": "message",
+                                            "label": '15:00-16:00',
+                                            "text": MM+'月'+(DD+7)+'日'+"15:00-16:00"
+                                        },{
+                                          "type": "message",
+                                            "label": '16:00-17:00',
+                                            "text": MM+'月'+(DD+7)+'日'+"16:00-17:00"
+                                        }]
+                                    }]
+                                    }
+                                  });
+                                }
+                                else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+7)+'日'+"10:00~11:00") {
+                                  var Rdate = event.message.text;
+                                  // console.log(receiverId);
+                                  // console.log(Rdate);
+                                  // console.log(chatData);
+                                  // console.log(receiverId)
+                                  for( let i in chatData ) {
+                                    // console.log(chatData[i].Profile.Reservation == Rdate);
+                                  if (chatData[i].Profile.Reservation == Rdate){
+                                    let reservation_YES = ('預約已滿');
+                                        event.reply({
+                                             type: 'text',
+                                             text: reservation_YES
+                                         });
+                                         break;
+                                       } else {
+                                        if (chatData[i].Profile.userId == receiverId){
+                                       newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                       let reservation_YES = ('預約成功');
+                                       event.reply({
+                                            type: 'text',
+                                            text: reservation_YES
+                                        });
+                                       }
+                                       }
+                                   }
+                                 }
+                                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+7)+'日'+"11:00-12:00") {
+                                 var Rdate = event.message.text;
+                                 // console.log(receiverId);
+                                 // console.log(Rdate);
+                                 // console.log(chatData);
+                                 // console.log(receiverId)
+                                 for( let i in chatData ) {
+                                 // console.log(chatData[i].Profile.Reservation == Rdate);
+                                 if (chatData[i].Profile.Reservation == Rdate){
+                                 let reservation_YES = ('預約已滿');
+                                 event.reply({
+                                      type: 'text',
+                                      text: reservation_YES
+                                  });
+                                  break;
+                                 } else {
+                                  if (chatData[i].Profile.userId == receiverId){
+                                 newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                 let reservation_YES = ('預約成功');
+                                 event.reply({
+                                      type: 'text',
+                                      text: reservation_YES
+                                  });
+                                 }
+                                 }
+                                 }
+                                 }
+                                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+7)+'日'+"15:00-16:00") {
+                                 var Rdate = event.message.text;
+                                 // console.log(receiverId);
+                                 // console.log(Rdate);
+                                 // console.log(chatData);
+                                 // console.log(receiverId)
+                                 for( let i in chatData ) {
+                                 // console.log(chatData[i].Profile.Reservation == Rdate);
+                                 if (chatData[i].Profile.Reservation == Rdate){
+                                 let reservation_YES = ('預約已滿');
+                                 event.reply({
+                                      type: 'text',
+                                      text: reservation_YES
+                                  });
+                                  break;
+                                 } else {
+                                  if (chatData[i].Profile.userId == receiverId){
+                                 newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                 let reservation_YES = ('預約成功');
+                                 event.reply({
+                                      type: 'text',
+                                      text: reservation_YES
+                                  });
+                                 }
+                                 }
+                                 }
+                                 }
+                                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+7)+'日'+"16:00-17:00") {
+                                 var Rdate = event.message.text;
+                                 // console.log(receiverId);
+                                 // console.log(Rdate);
+                                 // console.log(chatData);
+                                 // console.log(receiverId)
+                                 for( let i in chatData ) {
+                                 // console.log(chatData[i].Profile.Reservation == Rdate);
+                                 if (chatData[i].Profile.Reservation == Rdate){
+                                 let reservation_YES = ('預約已滿');
+                                 event.reply({
+                                      type: 'text',
+                                      text: reservation_YES
+                                  });
+                                  break;
+                                 } else {
+                                  if (chatData[i].Profile.userId == receiverId){
+                                 newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                 let reservation_YES = ('預約成功');
+                                 event.reply({
+                                      type: 'text',
+                                      text: reservation_YES
+                                  });
+                                 }
+                                 }
+                                 }
+                                 }
+                                //DD+8
+                               else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+8) + " 日") {
+                                       io.sockets.emit('new message', {
+                                           msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+8) + " 日",
+                                           name: receiverId
+                                       });
+                                       event.reply({
+                                           "type": "template",
+                                           "altText": "Welcome Template",
+                                           "template": {
+                                             type: 'carousel',
+                                       "columns": [{
+                                           "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+8) + " 日",
+                                           "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                                           "actions": [{
+                                             "type": "message",
+                                               "label": '10:00-11:00',
+                                               "text": MM+'月'+(DD+8)+'日'+"10:00~11:00"
+                                           },{
+                                             "type": "message",
+                                               "label": '11:00-12:00',
+                                               "text": MM+'月'+(DD+8)+'日'+"11:00-12:00"
+                                           }]
+                                       },{
+                                           "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+8) + " 日",
+                                           "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                                           "actions": [{
+                                             "type": "message",
+                                               "label": '15:00-16:00',
+                                               "text": MM+'月'+(DD+8)+'日'+"15:00-16:00"
+                                           },{
+                                             "type": "message",
+                                               "label": '16:00-17:00',
+                                               "text": MM+'月'+(DD+8)+'日'+"16:00-17:00"
+                                           }]
+                                       }]
+                                       }
+                                     });
+                                   }
+                                   else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+8)+'日'+"10:00~11:00") {
+                                     var Rdate = event.message.text;
+                                     // console.log(receiverId);
+                                     // console.log(Rdate);
+                                     // console.log(chatData);
+                                     // console.log(receiverId)
+                                     for( let i in chatData ) {
+                                       // console.log(chatData[i].Profile.Reservation == Rdate);
+                                     if (chatData[i].Profile.Reservation == Rdate){
+                                       let reservation_YES = ('預約已滿');
+                                           event.reply({
+                                                type: 'text',
+                                                text: reservation_YES
+                                            });
+                                            break;
+                                          } else {
+                                           if (chatData[i].Profile.userId == receiverId){
+                                          newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                          let reservation_YES = ('預約成功');
+                                          event.reply({
+                                               type: 'text',
+                                               text: reservation_YES
+                                           });
+                                          }
+                                          }
+                                      }
+                                    }
+                                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+8)+'日'+"11:00-12:00") {
+                                    var Rdate = event.message.text;
+                                    // console.log(receiverId);
+                                    // console.log(Rdate);
+                                    // console.log(chatData);
+                                    // console.log(receiverId)
+                                    for( let i in chatData ) {
+                                    // console.log(chatData[i].Profile.Reservation == Rdate);
+                                    if (chatData[i].Profile.Reservation == Rdate){
+                                    let reservation_YES = ('預約已滿');
+                                    event.reply({
+                                         type: 'text',
+                                         text: reservation_YES
+                                     });
+                                     break;
+                                    } else {
+                                     if (chatData[i].Profile.userId == receiverId){
+                                    newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                    let reservation_YES = ('預約成功');
+                                    event.reply({
+                                         type: 'text',
+                                         text: reservation_YES
+                                     });
+                                    }
+                                    }
+                                    }
+                                    }
+                                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+8)+'日'+"15:00-16:00") {
+                                    var Rdate = event.message.text;
+                                    // console.log(receiverId);
+                                    // console.log(Rdate);
+                                    // console.log(chatData);
+                                    // console.log(receiverId)
+                                    for( let i in chatData ) {
+                                    // console.log(chatData[i].Profile.Reservation == Rdate);
+                                    if (chatData[i].Profile.Reservation == Rdate){
+                                    let reservation_YES = ('預約已滿');
+                                    event.reply({
+                                         type: 'text',
+                                         text: reservation_YES
+                                     });
+                                     break;
+                                    } else {
+                                     if (chatData[i].Profile.userId == receiverId){
+                                    newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                    let reservation_YES = ('預約成功');
+                                    event.reply({
+                                         type: 'text',
+                                         text: reservation_YES
+                                     });
+                                    }
+                                    }
+                                    }
+                                    }
+                                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+8)+'日'+"16:00-17:00") {
+                                    var Rdate = event.message.text;
+                                    // console.log(receiverId);
+                                    // console.log(Rdate);
+                                    // console.log(chatData);
+                                    // console.log(receiverId)
+                                    for( let i in chatData ) {
+                                    // console.log(chatData[i].Profile.Reservation == Rdate);
+                                    if (chatData[i].Profile.Reservation == Rdate){
+                                    let reservation_YES = ('預約已滿');
+                                    event.reply({
+                                         type: 'text',
+                                         text: reservation_YES
+                                     });
+                                     break;
+                                    } else {
+                                     if (chatData[i].Profile.userId == receiverId){
+                                    newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                    let reservation_YES = ('預約成功');
+                                    event.reply({
+                                         type: 'text',
+                                         text: reservation_YES
+                                     });
+                                    }
+                                    }
+                                    }
+                                    }
+                                   //DD+9
+                                  else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+9) + " 日") {
+                                          io.sockets.emit('new message', {
+                                              msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+9) + " 日",
+                                              name: receiverId
+                                          });
+                                          event.reply({
+                                              "type": "template",
+                                              "altText": "Welcome Template",
+                                              "template": {
+                                                type: 'carousel',
+                                          "columns": [{
+                                              "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+9) + " 日",
+                                              "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                                              "actions": [{
+                                                "type": "message",
+                                                  "label": '10:00-11:00',
+                                                  "text": MM+'月'+(DD+9)+'日'+"10:00~11:00"
+                                              },{
+                                                "type": "message",
+                                                  "label": '11:00-12:00',
+                                                  "text": MM+'月'+(DD+9)+'日'+"11:00-12:00"
+                                              }]
+                                          },{
+                                              "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+9) + " 日",
+                                              "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                                              "actions": [{
+                                                "type": "message",
+                                                  "label": '15:00-16:00',
+                                                  "text": MM+'月'+(DD+9)+'日'+"15:00-16:00"
+                                              },{
+                                                "type": "message",
+                                                  "label": '16:00-17:00',
+                                                  "text": MM+'月'+(DD+9)+'日'+"16:00-17:00"
+                                              }]
+                                          }]
+                                          }
+                                        });
+                                      }
+                                      else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+9)+'日'+"10:00~11:00") {
+                                        var Rdate = event.message.text;
+                                        // console.log(receiverId);
+                                        // console.log(Rdate);
+                                        // console.log(chatData);
+                                        // console.log(receiverId)
+                                        for( let i in chatData ) {
+                                          // console.log(chatData[i].Profile.Reservation == Rdate);
+                                        if (chatData[i].Profile.Reservation == Rdate){
+                                          let reservation_YES = ('預約已滿');
+                                              event.reply({
+                                                   type: 'text',
+                                                   text: reservation_YES
+                                               });
+                                               break;
+                                             } else {
+                                              if (chatData[i].Profile.userId == receiverId){
+                                             newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                             let reservation_YES = ('預約成功');
+                                             event.reply({
+                                                  type: 'text',
+                                                  text: reservation_YES
+                                              });
+                                             }
+                                             }
+                                         }
+                                       }
+                                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+9)+'日'+"11:00-12:00") {
+                                       var Rdate = event.message.text;
+                                       // console.log(receiverId);
+                                       // console.log(Rdate);
+                                       // console.log(chatData);
+                                       // console.log(receiverId)
+                                       for( let i in chatData ) {
+                                       // console.log(chatData[i].Profile.Reservation == Rdate);
+                                       if (chatData[i].Profile.Reservation == Rdate){
+                                       let reservation_YES = ('預約已滿');
+                                       event.reply({
+                                            type: 'text',
+                                            text: reservation_YES
+                                        });
+                                        break;
+                                       } else {
+                                        if (chatData[i].Profile.userId == receiverId){
+                                       newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                       let reservation_YES = ('預約成功');
+                                       event.reply({
+                                            type: 'text',
+                                            text: reservation_YES
+                                        });
+                                       }
+                                       }
+                                       }
+                                       }
+                                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+9)+'日'+"15:00-16:00") {
+                                       var Rdate = event.message.text;
+                                       // console.log(receiverId);
+                                       // console.log(Rdate);
+                                       // console.log(chatData);
+                                       // console.log(receiverId)
+                                       for( let i in chatData ) {
+                                       // console.log(chatData[i].Profile.Reservation == Rdate);
+                                       if (chatData[i].Profile.Reservation == Rdate){
+                                       let reservation_YES = ('預約已滿');
+                                       event.reply({
+                                            type: 'text',
+                                            text: reservation_YES
+                                        });
+                                        break;
+                                       } else {
+                                        if (chatData[i].Profile.userId == receiverId){
+                                       newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                       let reservation_YES = ('預約成功');
+                                       event.reply({
+                                            type: 'text',
+                                            text: reservation_YES
+                                        });
+                                       }
+                                       }
+                                       }
+                                       }
+                                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+9)+'日'+"16:00-17:00") {
+                                       var Rdate = event.message.text;
+                                       // console.log(receiverId);
+                                       // console.log(Rdate);
+                                       // console.log(chatData);
+                                       // console.log(receiverId)
+                                       for( let i in chatData ) {
+                                       // console.log(chatData[i].Profile.Reservation == Rdate);
+                                       if (chatData[i].Profile.Reservation == Rdate){
+                                       let reservation_YES = ('預約已滿');
+                                       event.reply({
+                                            type: 'text',
+                                            text: reservation_YES
+                                        });
+                                        break;
+                                       } else {
+                                        if (chatData[i].Profile.userId == receiverId){
+                                       newDBRef.child(i).child("Profile").update({"Reservation":Rdate});
+                                       let reservation_YES = ('預約成功');
+                                       event.reply({
+                                            type: 'text',
+                                            text: reservation_YES
+                                        });
+                                       }
+                                       }
+                                       }
+                                       }
+                                      //↑預約功能
 /*----------------------------------------------------問題分類------------------------------------------------------------*/
              else if(event.message.type === 'text' && message_lineTochat.trim() === '問題分類') {
                           io.sockets.emit('new message', {
