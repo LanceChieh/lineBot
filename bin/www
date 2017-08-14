@@ -93,9 +93,12 @@ var w2;
 var n;
 //抓日期
 var Today = new Date();
+var day_list = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+var day = Today.getDay();
 var YY = Today.getFullYear();
 var MM = (Today.getMonth()+1);
 var DD = Today.getDate();
+console.log(day);
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -633,51 +636,51 @@ bot.on('message', event => {
                                 type: 'carousel',
                           "columns": [{
                               "title": '預約日期',
-                              "text": MM + " 月 " + (DD+1) + " 日"+'~'+MM + " 月 " + (DD+3) +'日',
+                              "text": MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]+'~'+MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7],
                               "actions": [{
                                 "type": "message",
-                                  "label": YY+ " 年 " + MM + " 月 " + (DD+1) + " 日",
-                                  "text": YY+ " 年 " + MM + " 月 " + (DD+1) + " 日"
+                                  "label": YY+ " 年 " + MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7],
+                                  "text": YY+ " 年 " + MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]
                               },{
                                 "type": "message",
-                                  "label": YY+ " 年 " + MM + " 月 " + (DD+2) + " 日",
-                                  "text": YY+ " 年 " + MM + " 月 " + (DD+2) + " 日"
+                                  "label": YY+ " 年 " + MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7],
+                                  "text": YY+ " 年 " + MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7]
                               },{
                                 "type": "message",
-                                  "label": YY+ " 年 " + MM + " 月 " + (DD+3) + " 日",
-                                  "text": YY+ " 年 " + MM + " 月 " + (DD+3) + " 日"
+                                  "label": YY+ " 年 " + MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7],
+                                  "text": YY+ " 年 " + MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7]
                               }]
                           },{
                               "title": '預約日期',
-                              "text": MM + " 月 " + (DD+4) + " 日"+'~'+MM + " 月 " + (DD+6) +'日',
+                              "text": MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]+'~'+MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7],
                               "actions": [{
                                 "type": "message",
-                                  "label": YY+ " 年 " + MM + " 月 " + (DD+4) + " 日",
-                                  "text": YY+ " 年 " + MM + " 月 " + (DD+4) + " 日"
+                                  "label": YY+ " 年 " + MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7],
+                                  "text": YY+ " 年 " + MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]
                               },{
                                 "type": "message",
-                                  "label": YY+ " 年 " + MM + " 月 " + (DD+5) + " 日",
-                                  "text": YY+ " 年 " + MM + " 月 " + (DD+5) + " 日"
+                                  "label": YY+ " 年 " + MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7],
+                                  "text": YY+ " 年 " + MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7]
                               },{
                                 "type": "message",
-                                  "label": YY+ " 年 " + MM + " 月 " + (DD+6) + " 日",
-                                  "text": YY+ " 年 " + MM + " 月 " + (DD+6) + " 日"
+                                  "label": YY+ " 年 " + MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7],
+                                  "text": YY+ " 年 " + MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7]
                               }]
                           },{
                               "title": '預約日期',
-                              "text": MM + " 月 " + (DD+7) + " 日"+'~'+MM + " 月 " + (DD+9) +'日',
+                              "text": MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]+'~'+MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7],
                               "actions": [{
                                 "type": "message",
-                                  "label": YY+ " 年 " + MM + " 月 " + (DD+7) + " 日",
-                                  "text": YY+ " 年 " + MM + " 月 " + (DD+7) + " 日"
+                                  "label": YY+ " 年 " + MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7],
+                                  "text": YY+ " 年 " + MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]
                               },{
                                 "type": "message",
-                                  "label": YY+ " 年 " + MM + " 月 " + (DD+8) + " 日",
-                                  "text": YY+ " 年 " + MM + " 月 " + (DD+8) + " 日"
+                                  "label": YY+ " 年 " + MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7],
+                                  "text": YY+ " 年 " + MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7]
                               },{
                                 "type": "message",
-                                  "label": YY+ " 年 " + MM + " 月 " + (DD+9) + " 日",
-                                  "text": YY+ " 年 " + MM + " 月 " + (DD+9) + " 日"
+                                  "label": YY+ " 年 " + MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7],
+                                  "text": YY+ " 年 " + MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7]
                               }]
                           }]
                           }
@@ -686,45 +689,53 @@ bot.on('message', event => {
 
 /*----------------------------------------------------預約分類------------------------------------------------------------*/
           //DD+1
-          else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+1) + " 日") {
+          else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]) {
                  io.sockets.emit('new message', {
-                     msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+1) + " 日",
+                     msg: '已接收顯示'+YY+ " 年 " + MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7],
                      name: receiverId
                  });
+                 if((day+1)%7 != 0 && (day+1)%7 != 6){
                  event.reply({
                      "type": "template",
                      "altText": "Welcome Template",
                      "template": {
                        type: 'carousel',
                  "columns": [{
-                     "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+1) + " 日",
+                     "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7],
                      "text": "上午時段\n注意:預約日期，假日一概不受理。",
                      "actions": [{
                        "type": "message",
                          "label": '10:00-11:00',
-                         "text": MM+'月'+(DD+1)+'日'+"10:00~11:00"
+                         "text": MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]+"10:00~11:00"
                      },{
                        "type": "message",
                          "label": '11:00-12:00',
-                         "text": MM+'月'+(DD+1)+'日'+"11:00-12:00"
+                         "text": MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]+"11:00-12:00"
                      }]
                  },{
-                     "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+1) + " 日",
+                     "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7],
                      "text": "下午時段\n注意:預約日期，假日一概不受理。",
                      "actions": [{
                        "type": "message",
                          "label": '15:00-16:00',
-                         "text": MM+'月'+(DD+1)+'日'+"15:00-16:00"
+                         "text": MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]+"15:00-16:00"
                      },{
                        "type": "message",
                          "label": '16:00-17:00',
-                         "text": MM+'月'+(DD+1)+'日'+"16:00-17:00"
+                         "text": MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]+"16:00-17:00"
                      }]
                  }]
                  }
                });
+             } else {
+               let SSday = ('假日不得預約');
+                   event.reply({
+                        type: 'text',
+                        text: SSday
+                    });
              }
-             else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+1)+'日'+"10:00~11:00") {
+             }
+             else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]+"10:00~11:00") {
                var Rdate = event.message.text;
                // console.log(receiverId);
                // console.log(Rdate);
@@ -733,6 +744,7 @@ bot.on('message', event => {
                for( let i in chatData ) {
                  // console.log(chatData[i].Profile.Reservation == Rdate);
                if (chatData[i].Profile.Reservation == Rdate){
+
                  let reservation_YES = ('預約已滿');
                      event.reply({
                           type: 'text',
@@ -751,7 +763,7 @@ bot.on('message', event => {
                     }
                 }
               }
-              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+1)+'日'+"11:00-12:00") {
+              else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]+"11:00-12:00") {
               var Rdate = event.message.text;
               // console.log(receiverId);
               // console.log(Rdate);
@@ -778,7 +790,7 @@ bot.on('message', event => {
               }
               }
               }
-              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+1)+'日'+"15:00-16:00") {
+              else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]+"15:00-16:00") {
               var Rdate = event.message.text;
               // console.log(receiverId);
               // console.log(Rdate);
@@ -805,7 +817,7 @@ bot.on('message', event => {
               }
               }
               }
-              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+1)+'日'+"16:00-17:00") {
+              else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+1)+'日'+ day_list[(day+1)%7]+"16:00-17:00") {
               var Rdate = event.message.text;
               // console.log(receiverId);
               // console.log(Rdate);
@@ -833,45 +845,54 @@ bot.on('message', event => {
               }
               }
               //DD+2
-             else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+2) + " 日") {
+             else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7]) {
                      io.sockets.emit('new message', {
-                         msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+2) + " 日",
+                         msg: '已接收顯示'+YY+ " 年 " + MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7],
                          name: receiverId
                      });
+                     if((day+2)%7 != 0 && (day+2)%7 != 6){
                      event.reply({
                          "type": "template",
                          "altText": "Welcome Template",
                          "template": {
                            type: 'carousel',
                      "columns": [{
-                         "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+2) + " 日",
+                         "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7],
                          "text": "上午時段\n注意:預約日期，假日一概不受理。",
                          "actions": [{
                            "type": "message",
                              "label": '10:00-11:00',
-                             "text": MM+'月'+(DD+2)+'日'+"10:00~11:00"
+                             "text": MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7]+"10:00~11:00"
                          },{
                            "type": "message",
                              "label": '11:00-12:00',
-                             "text": MM+'月'+(DD+2)+'日'+"11:00-12:00"
+                             "text": MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7]+"11:00-12:00"
                          }]
                      },{
-                         "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+2) + " 日",
+                         "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7],
                          "text": "下午時段\n注意:預約日期，假日一概不受理。",
                          "actions": [{
                            "type": "message",
                              "label": '15:00-16:00',
-                             "text": MM+'月'+(DD+2)+'日'+"15:00-16:00"
+                             "text": MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7]+"15:00-16:00"
                          },{
                            "type": "message",
                              "label": '16:00-17:00',
-                             "text": MM+'月'+(DD+2)+'日'+"16:00-17:00"
+                             "text": MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7]+"16:00-17:00"
                          }]
                      }]
                      }
                    });
+                 } else {
+                   let SSday = ('假日不得預約');
+                       event.reply({
+                            type: 'text',
+                            text: SSday
+                        });
                  }
-                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+2)+'日'+"10:00~11:00") {
+
+                 }
+                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7]+"10:00~11:00") {
                    var Rdate = event.message.text;
                    // console.log(receiverId);
                    // console.log(Rdate);
@@ -898,7 +919,7 @@ bot.on('message', event => {
                         }
                     }
                   }
-                  else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+2)+'日'+"11:00-12:00") {
+                  else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7]+"11:00-12:00") {
                   var Rdate = event.message.text;
                   // console.log(receiverId);
                   // console.log(Rdate);
@@ -925,7 +946,7 @@ bot.on('message', event => {
                   }
                   }
                   }
-                  else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+2)+'日'+"15:00-16:00") {
+                  else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7]+"15:00-16:00") {
                   var Rdate = event.message.text;
                   // console.log(receiverId);
                   // console.log(Rdate);
@@ -952,7 +973,7 @@ bot.on('message', event => {
                   }
                   }
                   }
-                  else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+2)+'日'+"16:00-17:00") {
+                  else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+2)+'日'+ day_list[(day+2)%7]+"16:00-17:00") {
                   var Rdate = event.message.text;
                   // console.log(receiverId);
                   // console.log(Rdate);
@@ -980,45 +1001,54 @@ bot.on('message', event => {
                   }
                   }
                  //DD+3
-                else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+3) + " 日") {
+                else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7]) {
                         io.sockets.emit('new message', {
-                            msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+3) + " 日",
+                            msg: '已接收顯示'+YY+ " 年 " + MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7],
                             name: receiverId
                         });
+                        if((day+3)%7 != 0 && (day+3)%7 != 6){
                         event.reply({
                             "type": "template",
                             "altText": "Welcome Template",
                             "template": {
                               type: 'carousel',
                         "columns": [{
-                            "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+3) + " 日",
+                            "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7],
                             "text": "上午時段\n注意:預約日期，假日一概不受理。",
                             "actions": [{
                               "type": "message",
                                 "label": '10:00-11:00',
-                                "text": MM+'月'+(DD+3)+'日'+"10:00~11:00"
+                                "text": MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7]+"10:00~11:00"
                             },{
                               "type": "message",
                                 "label": '11:00-12:00',
-                                "text": MM+'月'+(DD+3)+'日'+"11:00-12:00"
+                                "text": MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7]+"11:00-12:00"
                             }]
                         },{
-                            "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+3) + " 日",
+                            "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7],
                             "text": "下午時段\n注意:預約日期，假日一概不受理。",
                             "actions": [{
                               "type": "message",
                                 "label": '15:00-16:00',
-                                "text": MM+'月'+(DD+3)+'日'+"15:00-16:00"
+                                "text": MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7]+"15:00-16:00"
                             },{
                               "type": "message",
                                 "label": '16:00-17:00',
-                                "text": MM+'月'+(DD+3)+'日'+"16:00-17:00"
+                                "text": MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7]+"16:00-17:00"
                             }]
                         }]
                         }
                       });
+                    } else {
+                      let SSday = ('假日不得預約');
+                          event.reply({
+                               type: 'text',
+                               text: SSday
+                           });
                     }
-                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+3)+'日'+"10:00~11:00") {
+
+                    }
+                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7]+"10:00~11:00") {
                       var Rdate = event.message.text;
                       // console.log(receiverId);
                       // console.log(Rdate);
@@ -1045,7 +1075,7 @@ bot.on('message', event => {
                            }
                        }
                      }
-                     else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+3)+'日'+"11:00-12:00") {
+                     else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7]+"11:00-12:00") {
                      var Rdate = event.message.text;
                      // console.log(receiverId);
                      // console.log(Rdate);
@@ -1072,7 +1102,7 @@ bot.on('message', event => {
                      }
                      }
                      }
-                     else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+3)+'日'+"15:00-16:00") {
+                     else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7]+"15:00-16:00") {
                      var Rdate = event.message.text;
                      // console.log(receiverId);
                      // console.log(Rdate);
@@ -1099,7 +1129,7 @@ bot.on('message', event => {
                      }
                      }
                      }
-                     else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+3)+'日'+"16:00-17:00") {
+                     else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+3)+'日'+ day_list[(day+3)%7]+"16:00-17:00") {
                      var Rdate = event.message.text;
                      // console.log(receiverId);
                      // console.log(Rdate);
@@ -1127,45 +1157,54 @@ bot.on('message', event => {
                      }
                      }
                     //DD+4
-                   else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+4) + " 日") {
+                   else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]) {
                            io.sockets.emit('new message', {
-                               msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+4) + " 日",
+                               msg: '已接收顯示'+YY+ " 年 " + MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7],
                                name: receiverId
                            });
+                           if((day+4)%7 != 0 && (day+4)%7 != 6){
                            event.reply({
                                "type": "template",
                                "altText": "Welcome Template",
                                "template": {
                                  type: 'carousel',
                            "columns": [{
-                               "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+4) + " 日",
+                               "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7],
                                "text": "上午時段\n注意:預約日期，假日一概不受理。",
                                "actions": [{
                                  "type": "message",
                                    "label": '10:00-11:00',
-                                   "text": MM+'月'+(DD+4)+'日'+"10:00~11:00"
+                                   "text": MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]+"10:00~11:00"
                                },{
                                  "type": "message",
                                    "label": '11:00-12:00',
-                                   "text": MM+'月'+(DD+4)+'日'+"11:00-12:00"
+                                   "text": MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]+"11:00-12:00"
                                }]
                            },{
-                               "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+4) + " 日",
+                               "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7],
                                "text": "下午時段\n注意:預約日期，假日一概不受理。",
                                "actions": [{
                                  "type": "message",
                                    "label": '15:00-16:00',
-                                   "text": MM+'月'+(DD+4)+'日'+"15:00-16:00"
+                                   "text": MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]+"15:00-16:00"
                                },{
                                  "type": "message",
                                    "label": '16:00-17:00',
-                                   "text": MM+'月'+(DD+4)+'日'+"16:00-17:00"
+                                   "text": MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]+"16:00-17:00"
                                }]
                            }]
                            }
                          });
+                       } else {
+                         let SSday = ('假日不得預約');
+                             event.reply({
+                                  type: 'text',
+                                  text: SSday
+                              });
                        }
-                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+4)+'日'+"10:00~11:00") {
+
+                       }
+                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]+"10:00~11:00") {
                          var Rdate = event.message.text;
                          // console.log(receiverId);
                          // console.log(Rdate);
@@ -1192,7 +1231,7 @@ bot.on('message', event => {
                               }
                           }
                         }
-                        else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+4)+'日'+"11:00-12:00") {
+                        else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]+"11:00-12:00") {
                         var Rdate = event.message.text;
                         // console.log(receiverId);
                         // console.log(Rdate);
@@ -1219,7 +1258,7 @@ bot.on('message', event => {
                         }
                         }
                         }
-                        else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+4)+'日'+"15:00-16:00") {
+                        else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]+"15:00-16:00") {
                         var Rdate = event.message.text;
                         // console.log(receiverId);
                         // console.log(Rdate);
@@ -1246,7 +1285,7 @@ bot.on('message', event => {
                         }
                         }
                         }
-                        else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+4)+'日'+"16:00-17:00") {
+                        else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+4)+'日'+ day_list[(day+4)%7]+"16:00-17:00") {
                         var Rdate = event.message.text;
                         // console.log(receiverId);
                         // console.log(Rdate);
@@ -1274,45 +1313,55 @@ bot.on('message', event => {
                         }
                         }
                        //DD+5
-                      else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+5) + " 日") {
+                      else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7]) {
                               io.sockets.emit('new message', {
-                                  msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+5) + " 日",
+                                  msg: '已接收顯示'+YY+ " 年 " + MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7],
                                   name: receiverId
                               });
+                              if((day+5)%7 !=0 && (day+5)%7 !=6){
                               event.reply({
                                   "type": "template",
                                   "altText": "Welcome Template",
                                   "template": {
                                     type: 'carousel',
                               "columns": [{
-                                  "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+5) + " 日",
+                                  "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7],
                                   "text": "上午時段\n注意:預約日期，假日一概不受理。",
                                   "actions": [{
                                     "type": "message",
                                       "label": '10:00-11:00',
-                                      "text": MM+'月'+(DD+5)+'日'+"10:00~11:00"
+                                      "text": MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7]+"10:00~11:00"
                                   },{
                                     "type": "message",
                                       "label": '11:00-12:00',
-                                      "text": MM+'月'+(DD+5)+'日'+"11:00-12:00"
+                                      "text": MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7]+"11:00-12:00"
                                   }]
                               },{
-                                  "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+5) + " 日",
+                                  "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7],
                                   "text": "下午時段\n注意:預約日期，假日一概不受理。",
                                   "actions": [{
                                     "type": "message",
                                       "label": '15:00-16:00',
-                                      "text": MM+'月'+(DD+5)+'日'+"15:00-16:00"
+                                      "text": MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7]+"15:00-16:00"
                                   },{
                                     "type": "message",
                                       "label": '16:00-17:00',
-                                      "text": MM+'月'+(DD+5)+'日'+"16:00-17:00"
+                                      "text": MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7]+"16:00-17:00"
                                   }]
                               }]
                               }
                             });
+                          } else
+                          {
+                            let Holiday = ('假日不得預約');
+                                event.reply({
+                                     type: 'text',
+                                     text: Holiday
+                                 });
+
                           }
-                          else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+5)+'日'+"10:00~11:00") {
+                          }
+                          else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7]+"10:00~11:00") {
                             var Rdate = event.message.text;
                             // console.log(receiverId);
                             // console.log(Rdate);
@@ -1339,7 +1388,7 @@ bot.on('message', event => {
                                  }
                              }
                            }
-                           else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+5)+'日'+"11:00-12:00") {
+                           else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7]+"11:00-12:00") {
                            var Rdate = event.message.text;
                            // console.log(receiverId);
                            // console.log(Rdate);
@@ -1366,7 +1415,7 @@ bot.on('message', event => {
                            }
                            }
                            }
-                           else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+5)+'日'+"15:00-16:00") {
+                           else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7]+"15:00-16:00") {
                            var Rdate = event.message.text;
                            // console.log(receiverId);
                            // console.log(Rdate);
@@ -1393,7 +1442,7 @@ bot.on('message', event => {
                            }
                            }
                            }
-                           else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+5)+'日'+"16:00-17:00") {
+                           else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+5)+'日'+ day_list[(day+5)%7]+"16:00-17:00") {
                            var Rdate = event.message.text;
                            // console.log(receiverId);
                            // console.log(Rdate);
@@ -1421,45 +1470,54 @@ bot.on('message', event => {
                            }
                            }
                           //DD+6
-                         else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+6) + " 日") {
+                         else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7]) {
                                  io.sockets.emit('new message', {
-                                     msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+6) + " 日",
+                                     msg: '已接收顯示'+YY+ " 年 " + MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7],
                                      name: receiverId
                                  });
+                                 if((day+6)%7 != 0 && (day+6)%7 != 6){
                                  event.reply({
                                      "type": "template",
                                      "altText": "Welcome Template",
                                      "template": {
                                        type: 'carousel',
                                  "columns": [{
-                                     "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+6) + " 日",
+                                     "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7],
                                      "text": "上午時段\n注意:預約日期，假日一概不受理。",
                                      "actions": [{
                                        "type": "message",
                                          "label": '10:00-11:00',
-                                         "text": MM+'月'+(DD+6)+'日'+"10:00~11:00"
+                                         "text": MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7]+"10:00~11:00"
                                      },{
                                        "type": "message",
                                          "label": '11:00-12:00',
-                                         "text": MM+'月'+(DD+6)+'日'+"11:00-12:00"
+                                         "text": MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7]+"11:00-12:00"
                                      }]
                                  },{
-                                     "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+6) + " 日",
+                                     "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7],
                                      "text": "下午時段\n注意:預約日期，假日一概不受理。",
                                      "actions": [{
                                        "type": "message",
                                          "label": '15:00-16:00',
-                                         "text": MM+'月'+(DD+6)+'日'+"15:00-16:00"
+                                         "text": MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7]+"15:00-16:00"
                                      },{
                                        "type": "message",
                                          "label": '16:00-17:00',
-                                         "text": MM+'月'+(DD+6)+'日'+"16:00-17:00"
+                                         "text": MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7]+"16:00-17:00"
                                      }]
                                  }]
                                  }
                                });
+                             } else {
+                               let SSday = ('假日不得預約');
+                                   event.reply({
+                                        type: 'text',
+                                        text: SSday
+                                    });
                              }
-                             else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+6)+'日'+"10:00~11:00") {
+
+                             }
+                             else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7]+"10:00~11:00") {
                                var Rdate = event.message.text;
                                // console.log(receiverId);
                                // console.log(Rdate);
@@ -1486,7 +1544,7 @@ bot.on('message', event => {
                                     }
                                 }
                               }
-                              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+6)+'日'+"11:00-12:00") {
+                              else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7]+"11:00-12:00") {
                               var Rdate = event.message.text;
                               // console.log(receiverId);
                               // console.log(Rdate);
@@ -1513,7 +1571,7 @@ bot.on('message', event => {
                               }
                               }
                               }
-                              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+6)+'日'+"15:00-16:00") {
+                              else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7]+"15:00-16:00") {
                               var Rdate = event.message.text;
                               // console.log(receiverId);
                               // console.log(Rdate);
@@ -1540,7 +1598,7 @@ bot.on('message', event => {
                               }
                               }
                               }
-                              else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+6)+'日'+"16:00-17:00") {
+                              else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+6)+'日'+ day_list[(day+6)%7]+"16:00-17:00") {
                               var Rdate = event.message.text;
                               // console.log(receiverId);
                               // console.log(Rdate);
@@ -1568,45 +1626,54 @@ bot.on('message', event => {
                               }
                               }
                              //DD+7
-                            else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+7) + " 日") {
+                            else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]) {
                                     io.sockets.emit('new message', {
-                                        msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+7) + " 日",
+                                        msg: '已接收顯示'+YY+ " 年 " + MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7],
                                         name: receiverId
                                     });
+                                    if((day+7)%7 != 0 && (day+7)%7 != 6){
                                     event.reply({
                                         "type": "template",
                                         "altText": "Welcome Template",
                                         "template": {
                                           type: 'carousel',
                                     "columns": [{
-                                        "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+7) + " 日",
+                                        "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7],
                                         "text": "上午時段\n注意:預約日期，假日一概不受理。",
                                         "actions": [{
                                           "type": "message",
                                             "label": '10:00-11:00',
-                                            "text": MM+'月'+(DD+7)+'日'+"10:00~11:00"
+                                            "text": MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]+"10:00~11:00"
                                         },{
                                           "type": "message",
                                             "label": '11:00-12:00',
-                                            "text": MM+'月'+(DD+7)+'日'+"11:00-12:00"
+                                            "text": MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]+"11:00-12:00"
                                         }]
                                     },{
-                                        "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+7) + " 日",
+                                        "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7],
                                         "text": "下午時段\n注意:預約日期，假日一概不受理。",
                                         "actions": [{
                                           "type": "message",
                                             "label": '15:00-16:00',
-                                            "text": MM+'月'+(DD+7)+'日'+"15:00-16:00"
+                                            "text": MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]+"15:00-16:00"
                                         },{
                                           "type": "message",
                                             "label": '16:00-17:00',
-                                            "text": MM+'月'+(DD+7)+'日'+"16:00-17:00"
+                                            "text": MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]+"16:00-17:00"
                                         }]
                                     }]
                                     }
                                   });
+                                } else {
+                                  let SSday = ('假日不得預約');
+                                      event.reply({
+                                           type: 'text',
+                                           text: SSday
+                                       });
                                 }
-                                else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+7)+'日'+"10:00~11:00") {
+
+                                }
+                                else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]+"10:00~11:00") {
                                   var Rdate = event.message.text;
                                   // console.log(receiverId);
                                   // console.log(Rdate);
@@ -1633,7 +1700,7 @@ bot.on('message', event => {
                                        }
                                    }
                                  }
-                                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+7)+'日'+"11:00-12:00") {
+                                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]+"11:00-12:00") {
                                  var Rdate = event.message.text;
                                  // console.log(receiverId);
                                  // console.log(Rdate);
@@ -1660,7 +1727,7 @@ bot.on('message', event => {
                                  }
                                  }
                                  }
-                                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+7)+'日'+"15:00-16:00") {
+                                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]+"15:00-16:00") {
                                  var Rdate = event.message.text;
                                  // console.log(receiverId);
                                  // console.log(Rdate);
@@ -1687,7 +1754,7 @@ bot.on('message', event => {
                                  }
                                  }
                                  }
-                                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+7)+'日'+"16:00-17:00") {
+                                 else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+7)+'日'+ day_list[(day+7)%7]+"16:00-17:00") {
                                  var Rdate = event.message.text;
                                  // console.log(receiverId);
                                  // console.log(Rdate);
@@ -1715,45 +1782,54 @@ bot.on('message', event => {
                                  }
                                  }
                                 //DD+8
-                               else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+8) + " 日") {
+                               else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7]) {
                                        io.sockets.emit('new message', {
-                                           msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+8) + " 日",
+                                           msg: '已接收顯示'+YY+ " 年 " + MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7],
                                            name: receiverId
                                        });
+                                       if((day+8)%7 != 0 && (day+8)%7 != 6){
                                        event.reply({
                                            "type": "template",
                                            "altText": "Welcome Template",
                                            "template": {
                                              type: 'carousel',
                                        "columns": [{
-                                           "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+8) + " 日",
+                                           "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7],
                                            "text": "上午時段\n注意:預約日期，假日一概不受理。",
                                            "actions": [{
                                              "type": "message",
                                                "label": '10:00-11:00',
-                                               "text": MM+'月'+(DD+8)+'日'+"10:00~11:00"
+                                               "text": MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7]+"10:00~11:00"
                                            },{
                                              "type": "message",
                                                "label": '11:00-12:00',
-                                               "text": MM+'月'+(DD+8)+'日'+"11:00-12:00"
+                                               "text": MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7]+"11:00-12:00"
                                            }]
                                        },{
-                                           "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+8) + " 日",
+                                           "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7],
                                            "text": "下午時段\n注意:預約日期，假日一概不受理。",
                                            "actions": [{
                                              "type": "message",
                                                "label": '15:00-16:00',
-                                               "text": MM+'月'+(DD+8)+'日'+"15:00-16:00"
+                                               "text": MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7]+"15:00-16:00"
                                            },{
                                              "type": "message",
                                                "label": '16:00-17:00',
-                                               "text": MM+'月'+(DD+8)+'日'+"16:00-17:00"
+                                               "text": MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7]+"16:00-17:00"
                                            }]
                                        }]
                                        }
                                      });
+                                   } else {
+                                     let SSday = ('假日不得預約');
+                                         event.reply({
+                                              type: 'text',
+                                              text: SSday
+                                          });
                                    }
-                                   else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+8)+'日'+"10:00~11:00") {
+
+                                   }
+                                   else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7]+"10:00~11:00") {
                                      var Rdate = event.message.text;
                                      // console.log(receiverId);
                                      // console.log(Rdate);
@@ -1780,7 +1856,7 @@ bot.on('message', event => {
                                           }
                                       }
                                     }
-                                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+8)+'日'+"11:00-12:00") {
+                                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7]+"11:00-12:00") {
                                     var Rdate = event.message.text;
                                     // console.log(receiverId);
                                     // console.log(Rdate);
@@ -1807,7 +1883,7 @@ bot.on('message', event => {
                                     }
                                     }
                                     }
-                                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+8)+'日'+"15:00-16:00") {
+                                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7]+"15:00-16:00") {
                                     var Rdate = event.message.text;
                                     // console.log(receiverId);
                                     // console.log(Rdate);
@@ -1834,7 +1910,7 @@ bot.on('message', event => {
                                     }
                                     }
                                     }
-                                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+8)+'日'+"16:00-17:00") {
+                                    else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+8)+'日'+ day_list[(day+8)%7]+"16:00-17:00") {
                                     var Rdate = event.message.text;
                                     // console.log(receiverId);
                                     // console.log(Rdate);
@@ -1862,45 +1938,54 @@ bot.on('message', event => {
                                     }
                                     }
                                    //DD+9
-                                  else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM + " 月 " + (DD+9) + " 日") {
+                                  else if (event.message.type === 'text' && message_lineTochat.trim() === YY+ " 年 " + MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7]) {
                                           io.sockets.emit('new message', {
-                                              msg: '已接收顯示'+YY+ " 年 " + MM + " 月 " + (DD+9) + " 日",
+                                              msg: '已接收顯示'+YY+ " 年 " + MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7],
                                               name: receiverId
                                           });
+                                          if((day+9)%7 != 0 && (day+9)%7 != 6){
                                           event.reply({
                                               "type": "template",
                                               "altText": "Welcome Template",
                                               "template": {
                                                 type: 'carousel',
                                           "columns": [{
-                                              "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+9) + " 日",
+                                              "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7],
                                               "text": "上午時段\n注意:預約日期，假日一概不受理。",
                                               "actions": [{
                                                 "type": "message",
                                                   "label": '10:00-11:00',
-                                                  "text": MM+'月'+(DD+9)+'日'+"10:00~11:00"
+                                                  "text": MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7]+"10:00~11:00"
                                               },{
                                                 "type": "message",
                                                   "label": '11:00-12:00',
-                                                  "text": MM+'月'+(DD+9)+'日'+"11:00-12:00"
+                                                  "text": MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7]+"11:00-12:00"
                                               }]
                                           },{
-                                              "title": "面試日期 " + YY+ " 年 " + MM + " 月 " + (DD+9) + " 日",
+                                              "title": "面試日期 " + YY+ " 年 " + MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7],
                                               "text": "下午時段\n注意:預約日期，假日一概不受理。",
                                               "actions": [{
                                                 "type": "message",
                                                   "label": '15:00-16:00',
-                                                  "text": MM+'月'+(DD+9)+'日'+"15:00-16:00"
+                                                  "text": MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7]+"15:00-16:00"
                                               },{
                                                 "type": "message",
                                                   "label": '16:00-17:00',
-                                                  "text": MM+'月'+(DD+9)+'日'+"16:00-17:00"
+                                                  "text": MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7]+"16:00-17:00"
                                               }]
                                           }]
                                           }
                                         });
+                                      } else {
+                                        let SSday = ('假日不得預約');
+                                            event.reply({
+                                                 type: 'text',
+                                                 text: SSday
+                                             });
                                       }
-                                      else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+9)+'日'+"10:00~11:00") {
+
+                                      }
+                                      else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7]+"10:00~11:00") {
                                         var Rdate = event.message.text;
                                         // console.log(receiverId);
                                         // console.log(Rdate);
@@ -1927,7 +2012,7 @@ bot.on('message', event => {
                                              }
                                          }
                                        }
-                                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+9)+'日'+"11:00-12:00") {
+                                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7]+"11:00-12:00") {
                                        var Rdate = event.message.text;
                                        // console.log(receiverId);
                                        // console.log(Rdate);
@@ -1954,7 +2039,7 @@ bot.on('message', event => {
                                        }
                                        }
                                        }
-                                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+9)+'日'+"15:00-16:00") {
+                                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7]+"15:00-16:00") {
                                        var Rdate = event.message.text;
                                        // console.log(receiverId);
                                        // console.log(Rdate);
@@ -1981,7 +2066,7 @@ bot.on('message', event => {
                                        }
                                        }
                                        }
-                                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM+'月'+(DD+9)+'日'+"16:00-17:00") {
+                                       else if (event.message.type === 'text' && message_lineTochat.trim() === MM +'月'+(DD+9)+'日'+ day_list[(day+9)%7]+"16:00-17:00") {
                                        var Rdate = event.message.text;
                                        // console.log(receiverId);
                                        // console.log(Rdate);
