@@ -99,6 +99,7 @@ var YY = Today.getFullYear();
 var MM = (Today.getMonth()+1);
 var DD = Today.getDate();
 var count = 0;
+var Dflag = false;
 console.log(day);
 /**
  * Listen on provided port, on all network interfaces.
@@ -157,7 +158,9 @@ bot.on('message', event => {
     let message_lineTochat = event.message.text;
     let receiverId = event.source.userId;
     let receiver_name;
-
+    if(event.message.type === 'text' && message_lineTochat.trim() === 'ZXC'){
+      console.log("hello");
+    }
     // console.log(receiverId);
     var msgObj = {
       owner: "user",
@@ -412,6 +415,9 @@ bot.on('message', event => {
       event.reply({
           type: 'text',
           text: yelp
+      },{
+          type: 'text',
+          text: yelp
       });
   }
 
@@ -616,14 +622,815 @@ bot.on('message', event => {
                          "text": "預約DEMO"
                      },{
                        "type": "message",
-                         "label": ' ',
-                         "text": " "
+                         "label": '董事長遊台灣',
+                         "text": "董事長遊台灣"
                      }]
                  }]
                  }
                })
              }
 /*----------------------------------------------------主選單------------------------------------------------------------*/
+              //↓董事長遊台灣
+              else if(event.message.type === 'text' && message_lineTochat.trim() === '董事長遊台灣') {
+                event.reply({
+                        "type": "template",
+                        "altText": "行程相關問題/服務滿意度調查",
+                        "template": {
+                            "type": "confirm",
+                            "text": "麻煩您，撥冗填答案本問卷，提供您的寶貴意見，做為日後本公司旅遊整體規劃與服務改善的重要參考。",
+                            "actions": [
+                                {
+                                  "type": "message",
+                                  "label": "行程相關問題",
+                                  "text": "行程相關問題"
+                                },
+                                {
+                                  "type": "message",
+                                  "label": "服務滿意度",
+                                  "text": "服務滿意度調查"
+                                }
+                            ]
+                        }
+                      })
+              }
+              else if(event.message.type === 'text' && message_lineTochat.trim() === '行程相關問題') {
+                           event.reply({
+                               "type": "template",
+                               "altText": "Welcome Template",
+                               "template": {
+                                 type: 'carousel',
+                           "columns": [{
+                               "title": '你如何得知此次旅遊行程',
+                               "text": '--------------------------------------------------',
+                               "actions": [{
+                                 "type": "message",
+                                   "label": '網站',
+                                   "text": "P1-網站"
+                               },{
+                                 "type": "message",
+                                   "label": 'FB',
+                                   "text": "P1-FB"
+                               },{
+                                 "type": "message",
+                                   "label": '親友介紹',
+                                   "text": "P1-親友介紹"
+                               }]
+                           },{
+                               "title": '你如何得知此次旅遊行程',
+                               "text": '--------------------------------------------------',
+                               "actions": [{
+                                 "type": "message",
+                                   "label": '從雙月刊',
+                                   "text": "P1-從雙月刊"
+                               },{
+                                 "type": "message",
+                                   "label": '員旅',
+                                   "text": "P1-員旅"
+                               },{
+                                 "type": "message",
+                                   "label": '其他',
+                                   "text": "P1-其他"
+                               }]
+                           }]
+                           }
+                         })
+                       }
+                         else if (event.message.text.indexOf('P1-') !== -1) {
+                           var ANS = event.message.text;
+                           for (let i in chatData) {
+                             if (chatData[i].Profile.userId == receiverId){
+                            newDBRef.child(i).child("Profile").update({"從哪個管道得知":ANS});
+                             break;
+                            }
+                           }
+                                    event.reply({
+                                        "type": "template",
+                                        "altText": "Welcome Template",
+                                        "template": {
+                                          type: 'carousel',
+                                    "columns": [{
+                                        "title": '您第幾次參加本公司行程',
+                                        "text": '--------------------------------------------------',
+                                        "actions": [{
+                                          "type": "message",
+                                            "label": '第一次',
+                                            "text": "P2-第一次"
+                                        },{
+                                          "type": "message",
+                                            "label": '第二次',
+                                            "text": "P2-第二次"
+                                        },{
+                                          "type": "message",
+                                            "label": '第三次',
+                                            "text": "P2-第三次"
+                                        }]
+                                    },{
+                                        "title": '您第幾次參加本公司行程',
+                                        "text": '--------------------------------------------------',
+                                        "actions": [{
+                                          "type": "message",
+                                            "label": '第四次',
+                                            "text": "P2-第四次"
+                                        },{
+                                          "type": "message",
+                                            "label": '五次以上',
+                                            "text": "P2-五次以上"
+                                        },{
+                                          "type": "message",
+                                            "label": '查看其他問題',
+                                            "text": "Tini小精靈"
+                                        }]
+                                    }]
+                                    }
+                                  })
+                                }
+                                else if (event.message.text.indexOf('P2-') !== -1) {
+                                  var ANS = event.message.text;
+                                  for (let i in chatData) {
+                                    if (chatData[i].Profile.userId == receiverId){
+                                   newDBRef.child(i).child("Profile").update({"參加本公司的次數":ANS});
+                                    break;
+                                   }
+                                  }
+                                           event.reply({
+                                               "type": "template",
+                                               "altText": "Welcome Template",
+                                               "template": {
+                                                 type: 'carousel',
+                                           "columns": [{
+                                               "title": '您再次參加本公司行程原因',
+                                               "text": '--------------------------------------------------',
+                                               "actions": [{
+                                                 "type": "message",
+                                                   "label": '服務品質好',
+                                                   "text": "P3-服務品質好"
+                                               },{
+                                                 "type": "message",
+                                                   "label": '行程地點優',
+                                                   "text": "P3-行程地點優"
+                                               },{
+                                                 "type": "message",
+                                                   "label": '其他',
+                                                   "text": "P3-其他"
+                                               }]
+                                           }]
+                                           }
+                                         })
+                                       }
+                                       else if (event.message.text.indexOf('P3-') !== -1) {
+                                         var ANS = event.message.text;
+                                         for (let i in chatData) {
+                                           if (chatData[i].Profile.userId == receiverId){
+                                          newDBRef.child(i).child("Profile").update({"參加本公司旅遊的原因":ANS});
+                                           break;
+                                          }
+                                         }
+                                                  event.reply({
+                                                      "type": "template",
+                                                      "altText": "Welcome Template",
+                                                      "template": {
+                                                        type: 'carousel',
+                                                  "columns": [{
+                                                      "title": '您此次旅遊行程幾人同行',
+                                                      "text": '--------------------------------------------------',
+                                                      "actions": [{
+                                                        "type": "message",
+                                                          "label": '1人',
+                                                          "text": "P4-1人"
+                                                      },{
+                                                        "type": "message",
+                                                          "label": '2人',
+                                                          "text": "P4-2人"
+                                                      },{
+                                                        "type": "message",
+                                                          "label": '3人',
+                                                          "text": "P4-3人"
+                                                      }]
+                                                  },{
+                                                      "title": '您此次旅遊行程幾人同行',
+                                                      "text": '--------------------------------------------------',
+                                                      "actions": [{
+                                                        "type": "message",
+                                                          "label": '4人',
+                                                          "text": "P4-4人"
+                                                      },{
+                                                        "type": "message",
+                                                          "label": '5人以上',
+                                                          "text": "P4-5人以上"
+                                                      },{
+                                                        "type": "message",
+                                                          "label": '查看其他問題',
+                                                          "text": "Tini小精靈"
+                                                      }]
+                                                  }]
+                                                  }
+                                                })
+                                              }
+                                              else if (event.message.text.indexOf('P4-') !== -1) {
+                                                var ANS = event.message.text;
+                                                for (let i in chatData) {
+                                                  if (chatData[i].Profile.userId == receiverId){
+                                                 newDBRef.child(i).child("Profile").update({"此次旅遊幾人同行":ANS});
+                                                  break;
+                                                 }
+                                                }
+                                                     }
+              else if(event.message.type === 'text' && message_lineTochat.trim() === '服務滿意度調查' || event.message.text.indexOf('P4-') !== -1 ) {
+                           event.reply({
+                               "type": "template",
+                               "altText": "Welcome Template",
+                               "template": {
+                                 type: 'carousel',
+                           "columns": [{
+                               "title": '服務滿意度調查',
+                               "text": '秘書:楊靜嫻',
+                               "actions": [{
+                                 "type": "message",
+                                   "label": '非常滿意',
+                                   "text": "Q1-非常滿意"
+                               },{
+                                 "type": "message",
+                                   "label": '滿意',
+                                   "text": "Q1-滿意"
+                               },{
+                                 "type": "message",
+                                   "label": '普通',
+                                   "text": "Q1-普通"
+                               }]
+                           },{
+                               "title": '服務滿意度調查',
+                               "text": '秘書:楊靜嫻',
+                               "actions": [{
+                                 "type": "message",
+                                   "label": '不滿意',
+                                   "text": "Q1-不滿意"
+                               },{
+                                 "type": "message",
+                                   "label": '非常不滿意',
+                                   "text": "非常不滿意-Q1"
+                               },{
+                                 "type": "message",
+                                   "label": '查看其他問題',
+                                   "text": "Tini小精靈"
+                               }]
+                           }]
+                           }
+                         })
+                       }
+          else if (event.message.text.indexOf('Q1-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"秘書:楊靜嫻":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '司機:百駿',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q2-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q2-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q2-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '司機:百駿',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q2-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q2-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q2-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"司機:百駿":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '攝影師：劉育昇',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q3-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q3-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q3-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '攝影師：劉育昇',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q3-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q3-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q3-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"攝影師：劉育昇":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '客服人員',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q4-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q4-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q4-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '客服人員',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q4-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q4-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q4-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"客服人員":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '導覽老師：魏清水',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q5-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q5-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q5-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '導覽老師：魏清水',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q5-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q5-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q5-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"導覽老師：魏清水":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '導覽老師：陳仕賢',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q6-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q6-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q6-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '導覽老師：陳仕賢',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q6-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q6-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q6-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"導覽老師：陳仕賢":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '餐廳：蘑菇部落',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q7-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q7-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q7-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '餐廳：蘑菇部落',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q7-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q7-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q7-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"餐廳：蘑菇部落":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '餐廳：黑公雞風味餐廳',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q8-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q8-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q8-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '餐廳：黑公雞風味餐廳',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q8-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q8-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q8-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"餐廳：黑公雞風味餐廳":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '餐廳：宏銘的廚房',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q9-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q9-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q9-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '餐廳：宏銘的廚房',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q9-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q9-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q9-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"餐廳：宏銘的廚房":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '餐廳：喆娟夢田',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q10-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q10-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q10-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '餐廳：喆娟夢田',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q10-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q10-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q10-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"餐廳：喆娟夢田":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '伴手禮',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q11-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q11-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q11-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '伴手禮',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q11-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q11-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q11-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"伴手禮":ANS});
+              break;
+             }
+            }
+            event.reply({
+                "type": "template",
+                "altText": "Welcome Template",
+                "template": {
+                  type: 'carousel',
+            "columns": [{
+                "title": '服務滿意度調查',
+                "text": '住宿：彰化福泰飯店',
+                "actions": [{
+                  "type": "message",
+                    "label": '非常滿意',
+                    "text": "Q12-非常滿意"
+                },{
+                  "type": "message",
+                    "label": '滿意',
+                    "text": "Q12-滿意"
+                },{
+                  "type": "message",
+                    "label": '普通',
+                    "text": "Q12-普通"
+                }]
+            },{
+                "title": '服務滿意度調查',
+                "text": '住宿：彰化福泰飯店',
+                "actions": [{
+                  "type": "message",
+                    "label": '不滿意',
+                    "text": "Q12-不滿意"
+                },{
+                  "type": "message",
+                    "label": '非常不滿意',
+                    "text": "Q12-非常不滿意"
+                },{
+                  "type": "message",
+                    "label": '查看其他問題',
+                    "text": "Tini小精靈"
+                }]
+            }]
+            }
+          })
+          }
+          else if (event.message.text.indexOf('Q12-') !== -1) {
+            var ANS = event.message.text;
+            for (let i in chatData) {
+              if (chatData[i].Profile.userId == receiverId){
+             newDBRef.child(i).child("Profile").update({"住宿：彰化福泰飯店":ANS});
+              break;
+             }
+             let Sans = ('ZXC');
+             event.reply({
+                  type: 'text',
+                  text: Sans
+              });
+            }
+          }
+              //↑董事長遊台灣
               //↓預約功能
              else if(event.message.type === 'text' && message_lineTochat.trim() === '預約DEMO') {
                           io.sockets.emit('new message', {
