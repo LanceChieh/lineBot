@@ -67,7 +67,7 @@ const client = new line.Client({
 });
 
 // api ai setting
-var appApiai = apiai("6fd13e1dd00b4d93881e1e75cdf02bd4");
+// var appApiai = apiai("6fd13e1dd00b4d93881e1e75cdf02bd4");
 //
 //yelp-search
 const yelp = require('yelp-fusion');
@@ -99,7 +99,6 @@ var YY = Today.getFullYear();
 var MM = (Today.getMonth()+1);
 var DD = Today.getDate();
 var count = 0;
-var Dflag = false;
 console.log(day);
 /**
  * Listen on provided port, on all network interfaces.
@@ -158,9 +157,8 @@ bot.on('message', event => {
     let message_lineTochat = event.message.text;
     let receiverId = event.source.userId;
     let receiver_name;
-    if(event.message.type === 'text' && message_lineTochat.trim() === 'ZXC'){
-      console.log("hello");
-    }
+    let postion;
+    let Pflag;
     // console.log(receiverId);
     var msgObj = {
       owner: "user",
@@ -229,7 +227,7 @@ bot.on('message', event => {
 
     // from wenyen
     //  ===================  KINDS ====================
-    if (message_type === 'sticker') {
+ if (message_type === 'sticker') {
 
         io.sockets.emit('new message', {
             msg: 'Sticker received. Please check your phone.',
@@ -248,11 +246,12 @@ bot.on('message', event => {
             msg: address,
             name: receiverId
         });
+        console.log(Pflag);
         // ↓定位系統(餐廳搜尋)
         setTimeout(() => {
           const yelp_client = yelp.client(yelp_token);
           yelp_client.search({
-            term:'food',//餐廳種類
+            term:zxc,//餐廳種類
             locale:'zh_TW', //語系
             location: address,
           }).then(response => {
@@ -312,8 +311,6 @@ bot.on('message', event => {
             console.log('z:'+z);
             console.log('x:'+x);
             console.log(n);
-            console.log(address);
-
           }).catch(e => {
             console.log(e);
           });
@@ -406,20 +403,64 @@ bot.on('message', event => {
             messageTime: date.toString()
         });
     }
-    else if (event.message.type === 'text' && message_lineTochat.trim() === '餐廳DEMO') {
-      let yelp = ('感謝您使用挑餐廳的功能!\n傳送你的位置給我，便會告訴你最近的三家餐廳。');
+    else if (event.message.type === 'text' && message_lineTochat.trim() === '查詢地點DEMO') {
+      let yelp = ('請選擇，你想查尋最近的地點的目標');
       io.sockets.emit('new message', {
           msg: yelp,
           name: receiverId
       });
       event.reply({
-          type: 'text',
-          text: yelp
-      },{
-          type: 'text',
-          text: yelp
-      });
+       "type": "template",
+       "altText": "this is a buttons template",
+       "template": {
+           "type": "buttons",
+           "title": yelp,
+           "text": " ",
+           "actions": [
+               {
+                 "type": "message",
+                 "label": "八方雲集",
+                 "text": "八方雲集"
+               },{
+                 "type": "message",
+                 "label": "花旗銀行",
+                 "text": "花旗銀行"
+               }]
+       }
+     });
   }
+  else if (event.message.type === 'text' && message_lineTochat.trim() === '八方雲集') {
+    let yelp = ('感謝您使用挑餐廳的功能!\n傳送你的位置給我，便會告訴你最近的三家餐廳。');
+    zxc="八方雲集";
+    io.sockets.emit('new message', {
+        msg: yelp,
+        name: receiverId
+    });
+    event.reply({
+        type: 'text',
+        text: yelp
+    },{
+        type: 'text',
+        text: yelp
+    });
+}
+else if (event.message.type === 'text' && message_lineTochat.trim() === '花旗銀行') {
+  let yelp = ('感謝您使用挑餐廳的功能!\n傳送你的位置給我，便會告訴你最近的三家餐廳。');
+  zxc="花旗銀行";
+  console.log(Pflag);
+  io.sockets.emit('new message', {
+      msg: yelp,
+      name: receiverId
+  });
+  event.reply({
+      type: 'text',
+      text: yelp
+  },{
+      type: 'text',
+      text: yelp
+  });
+}
+
 
 /*----------------------------------------------------購買方案------------------------------------------------------------*/
     else if (event.message.type === 'text' && message_lineTochat.trim() === '購買方案') {
@@ -614,8 +655,8 @@ bot.on('message', event => {
                      "text": '餐廳搜尋 功能',
                      "actions": [{
                        "type": "message",
-                         "label": '餐廳DEMO',
-                         "text": "餐廳DEMO"
+                         "label": '查詢地點DEMO',
+                         "text": "查詢地點DEMO"
                      },{
                        "type": "message",
                          "label": '預約DEMO',
@@ -1423,12 +1464,52 @@ bot.on('message', event => {
              newDBRef.child(i).child("Profile").update({"住宿：彰化福泰飯店":ANS});
               break;
              }
-             let Sans = ('ZXC');
              event.reply({
-                  type: 'text',
-                  text: Sans
-              });
+              "type": "template",
+              "altText": "this is a buttons template",
+              "template": {
+                  "type": "buttons",
+                  "title": "請客戶輸入感想及建議",
+                  "text": " ",
+                  "actions": [
+                      {
+                        "type": "message",
+                        "label": "填寫",
+                        "text": "填寫"
+                      }]
+              }
+            });
             }
+          }
+          else if(event.message.type === 'text' && message_lineTochat.trim() === '填寫') {
+
+              msgObj.message = message_lineTochat ;
+              console.log(msgObj);
+                console.log('apiai') ;
+                var app = apiai('ecbb41a02267478ebadbda7e7ee3b4b2');
+                var request = app.textRequest(msgObj.message, {
+                    sessionId: 'dafb019e-753f-4f6e-ab71-bd13d5d6910e'
+                });
+                request.on('response', function(response) {
+                  let action = response.result.action ;
+                  let speech = response.result.fulfillment.messages[0].speech ;
+                  let parameter = response.result.parameters ;
+                  let complete = !response.result.actionIncomplete ;
+                  console.log('apiai-2') ;
+                  console.log(response.result) ;
+                });
+                request.on('error', function(error) {
+                    console.log(error);
+                });
+                request.end();
+                let  = ('假日不得預約');
+                    event.reply({
+                         type: 'text',
+                         text: SSday
+                     });
+                // console.log(app) ;
+                // console.log(request);
+               console.log('done') ;
           }
               //↑董事長遊台灣
               //↓預約功能
@@ -4600,9 +4681,7 @@ else if(event.message.type === 'text' && message_lineTochat.trim() === '問卷�
 app.post('/webhook/', linebotParser);
 
 
-/**
- * Socket.io
- */
+/*Socket.io*/
 //連接
 io.sockets.on('connection', (socket) => {
 
